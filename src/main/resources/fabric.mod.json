@@ -2,18 +2,17 @@
 	"schemaVersion": 1,
 	"id": "immersive-chests",
 	"version": "${version}",
-	"name": "immersive-chests",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Immersive Chests",
+	"description": "A client-side camera immersion mod that repositions and orients the camera when interacting with chests, barrels, furnaces, crafting stations, and other container blocks.",
 	"authors": [
-		"Me!"
+		"Zack Bailey"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/zacriah18/ImmersiveChests"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/immersive-chests/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"com.zackbailey.immersivechests.Immersivechests"
@@ -35,6 +34,10 @@
 		"fabricloader": ">=0.19.2",
 		"minecraft": "~1.21.11",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"cloth-config2": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
 	}
 }
