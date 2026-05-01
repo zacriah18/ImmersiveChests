@@ -27,3 +27,38 @@ Immersive Chests is a Minecraft client-side mod that dynamically repositions the
 ## 🧠 Core Architecture
 
 The mod uses a structured resolver pipeline to determine camera placement:
+
+### 🔑 Key Design Principles
+
+- **OrientationResolver is the single source of truth for camera placement**
+- **YawResolver never re-resolves orientation — it only interprets it**
+- **Offsets are orientation-relative, not player-relative**
+- **Pitch is purely derived from orientation**
+
+---
+
+## 🔄 Resolver Responsibilities
+
+| Resolver | Role |
+|--------|------|
+| OrientationResolver | Converts world + block + config → final orientation |
+| YawResolver | Converts orientation → yaw frame |
+| OffsetResolver | Applies positional offsets |
+| PitchResolver | Applies tilt and vertical rotation |
+
+---
+
+## ⚙️ Configuration
+
+Each block type has a configurable profile:
+
+```java
+new BlockSettings(
+    offsetX, offsetY, offsetZ,
+    hozOffsetX, hozOffsetY, hozOffsetZ,
+    tilt,
+    flipYaw,
+    orientationMode,
+    orientation,
+    yawMode
+)
