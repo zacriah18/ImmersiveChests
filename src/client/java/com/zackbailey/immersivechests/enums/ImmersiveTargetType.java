@@ -1,0 +1,30 @@
+package com.zackbailey.immersivechests.enums;
+
+public enum ImmersiveTargetType {
+    CHEST,
+    DOUBLE_CHEST_LEFT,
+    DOUBLE_CHEST_RIGHT,
+    TRAPPED_CHEST,
+    COPPER_CHEST,
+    ENDER_CHEST,
+    BARREL,
+    CRAFTING_TABLE,
+    AUTOMATIC_CRAFTING_TABLE,
+    STONECUTTER,
+    CARTOGRAPHY_TABLE,
+    SMITHING_TABLE,
+    LOOM,
+    GRINDSTONE,
+    SMOKER,
+    BLAST_FURNACE,
+    FURNACE,
+    ANVIL,
+    ENCHANTING_TABLE,
+    BREWING_STAND,
+    BEACON,
+    CHEST_MINECART,
+    CHEST_BOAT,
+    LECTERN_BOOK,
+    SHULKER_BOX,
+    AUTO_CRAFTER
+}

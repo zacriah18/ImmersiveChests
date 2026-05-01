@@ -1,0 +1,24 @@
+{
+  "immersivechests.orientation_mode.fixed": "Fixed",
+  "immersivechests.orientation_mode.nearest_axis": "Nearest Side",
+  "immersivechests.orientation_mode.block_face": "Block Face",
+
+  "immersivechests.orientation.top": "Top",
+  "immersivechests.orientation.bottom": "Bottom",
+  "immersivechests.orientation.north": "North",
+  "immersivechests.orientation.south": "South",
+  "immersivechests.orientation.east": "East",
+  "immersivechests.orientation.west": "West",
+
+  "immersivechests.yaw.player_raw": "Player Raw",
+  "immersivechests.yaw.player_forward": "Forward",
+  "immersivechests.yaw.player_back": "Back",
+  "immersivechests.yaw.player_left": "Left",
+  "immersivechests.yaw.player_right": "Right",
+  "immersivechests.yaw.axis": "Nearest Axis",
+  "immersivechests.yaw.face": "Block Face",
+  "immersivechests.yaw.world_north": "North",
+  "immersivechests.yaw.world_south": "South",
+  "immersivechests.yaw.world_east": "East",
+  "immersivechests.yaw.world_west": "West"
+}
