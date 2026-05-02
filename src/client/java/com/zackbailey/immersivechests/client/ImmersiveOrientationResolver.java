@@ -220,20 +220,7 @@ public final class ImmersiveOrientationResolver {
 
         return face;
     }
-
-    private static Vec3d orientationCenter(
-            Vec3d center,
-            ImmersiveCameraOrientation orientation
-    ) {
-        return switch (orientation) {
-            case NORTH -> center.add(0.0, 0.0, -1.0);
-            case SOUTH -> center.add(0.0, 0.0, 1.0);
-            case EAST -> center.add(1.0, 0.0, 0.0);
-            case WEST -> center.add(-1.0, 0.0, 0.0);
-            default -> center;
-        };
-    }
-
+    
     public static ImmersiveCameraOrientation applyAirPriority(
             MinecraftClient client,
             BlockPos blockPos,
