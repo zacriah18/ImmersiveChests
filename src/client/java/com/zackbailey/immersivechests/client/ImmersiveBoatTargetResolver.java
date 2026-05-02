@@ -2,55 +2,54 @@ package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveResolvedTarget;
 import com.zackbailey.immersivechests.client.records.ImmersiveTargetProfile;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.vehicle.ChestBoatEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.vehicle.boat.ChestBoat;
+import net.minecraft.world.phys.Vec3;
 
 public final class ImmersiveBoatTargetResolver {
 
     private ImmersiveBoatTargetResolver() {}
 
     public static ImmersiveResolvedTarget resolve(
-            ChestBoatEntity boat,
+            ChestBoat boat,
             ImmersiveTargetProfile profile
     ) {
-        Vec3d boatCenter = new Vec3d(
+        Vec3 boatCenter = new Vec3(
                 boat.getX(),
                 boat.getY(),
                 boat.getZ()
         );
 
-        float boatYaw = boat.getYaw();
+        float boatYaw = boat.getYRot();
         double yawRad = Math.toRadians(boatYaw);
 
-        Vec3d backward = new Vec3d(
+        Vec3 backward = new Vec3(
                 Math.sin(yawRad),
                 0.0,
                 -Math.cos(yawRad)
         );
 
-        Vec3d right = new Vec3d(
+        Vec3 right = new Vec3(
                 Math.cos(yawRad),
                 0.0,
                 Math.sin(yawRad)
         );
 
-        Vec3d cameraOffset = right.multiply(profile.offsetX())
+        Vec3 cameraOffset = right.scale(profile.offsetX())
                 .add(0.0, profile.offsetY(), 0.0)
-                .add(backward.multiply(
+                .add(backward.scale(
                         ImmersiveChestsConfigScreen.boatDistanceBehind + profile.offsetZ()
                 ));
 
-        float yaw = MathHelper.wrapDegrees(boatYaw + 180.0f);
+        float yaw = Mth.wrapDegrees(boatYaw + 180.0f);
 
         if (profile.flipYaw()) {
-            yaw = MathHelper.wrapDegrees(yaw + 180.0f);
+            yaw = Mth.wrapDegrees(yaw + 180.0f);
         }
 
-        float pitch = MathHelper.clamp(
+        float pitch = Mth.clamp(
                 90.0f + (float) profile.tilt(),
                 -90.0f,
                 90.0f
@@ -66,14 +65,14 @@ public final class ImmersiveBoatTargetResolver {
         );
     }
 
-    public static ChestBoatEntity ridingChestBoat(MinecraftClient client) {
-        if (client == null || client.player == null || !client.player.hasVehicle()) {
+    public static ChestBoat ridingChestBoat(Minecraft client) {
+        if (client == null || client.player == null || !client.player.isPassenger()) {
             return null;
         }
 
         Entity vehicle = client.player.getVehicle();
 
-        if (vehicle instanceof ChestBoatEntity chestBoat) {
+        if (vehicle instanceof ChestBoat chestBoat) {
             return chestBoat;
         }
 

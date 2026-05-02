@@ -13,7 +13,7 @@ public class ImmersivechestsClient implements ClientModInitializer {
             boolean playerMoving = false;
 
             if (client.player != null) {
-                playerMoving = client.player.getVelocity().lengthSquared() > 0.10;
+                playerMoving = client.player.getDeltaMovement().lengthSqr() > 0.10;
             }
 
             if (ImmersiveCameraState.getProgress() > 0.0f || ImmersiveCameraState.active) {

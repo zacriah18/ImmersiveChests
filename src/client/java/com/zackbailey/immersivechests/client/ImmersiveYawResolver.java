@@ -2,27 +2,26 @@ package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveTargetProfile;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 public final class ImmersiveYawResolver {
 
     private ImmersiveYawResolver() {}
 
     public static float resolve(
-            MinecraftClient client,
+            Minecraft client,
             ImmersiveTargetProfile profile,
             ImmersiveCameraOrientation resolvedOrientation,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             float playerYaw
     ) {
         if (profile == null) {
-            return MathHelper.wrapDegrees(playerYaw);
+            return Mth.wrapDegrees(playerYaw);
         }
 
         float yaw = switch (profile.yawMode()) {
@@ -58,13 +57,13 @@ public final class ImmersiveYawResolver {
             yaw += 180.0f;
         }
 
-        return MathHelper.wrapDegrees(yaw);
+        return Mth.wrapDegrees(yaw);
     }
 
     private static float yawForAxisMode(
             ImmersiveCameraOrientation resolvedOrientation,
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             float fallbackYaw
     ) {
         if (isSide(resolvedOrientation)) {
@@ -75,11 +74,11 @@ public final class ImmersiveYawResolver {
     }
 
     private static float yawForFaceMode(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
             ImmersiveCameraOrientation resolvedOrientation,
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             float fallbackYaw
     ) {
         if (isSide(resolvedOrientation)) {
@@ -109,8 +108,8 @@ public final class ImmersiveYawResolver {
     }
 
     private static float snappedYawTowardPlayer(
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             float fallbackYaw
     ) {
         if (center == null || playerCameraPos == null) {
@@ -124,8 +123,8 @@ public final class ImmersiveYawResolver {
     }
 
     private static ImmersiveCameraOrientation sideFromBlockToPlayer(
-            Vec3d center,
-            Vec3d playerCameraPos
+            Vec3 center,
+            Vec3 playerCameraPos
     ) {
         double dx = playerCameraPos.x - center.x;
         double dz = playerCameraPos.z - center.z;
@@ -142,27 +141,27 @@ public final class ImmersiveYawResolver {
     }
 
     private static float yawTowardPlayer(
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             float fallbackYaw
     ) {
         if (center == null || playerCameraPos == null) {
             return fallbackYaw;
         }
 
-        Vec3d dir = new Vec3d(
+        Vec3 dir = new Vec3(
                 playerCameraPos.x - center.x,
                 0.0,
                 playerCameraPos.z - center.z
         );
 
-        if (dir.lengthSquared() < 0.001) {
+        if (dir.lengthSqr() < 0.001) {
             return fallbackYaw;
         }
 
         dir = dir.normalize();
 
-        return MathHelper.wrapDegrees(
+        return Mth.wrapDegrees(
                 (float) (Math.atan2(-dir.x, dir.z) * (180.0 / Math.PI)) + 180.0f
         );
     }

@@ -2,25 +2,24 @@ package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
-
-import net.minecraft.block.BarrelBlock;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
 
 public final class ImmersiveOrientationResolver {
 
     private ImmersiveOrientationResolver() {}
 
     public static ImmersiveCameraOrientation resolve(
-            MinecraftClient client,
+            Minecraft client,
             ImmersiveCameraOrientationMode orientationMode,
             ImmersiveCameraOrientation fixedOrientation,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos
+            Vec3 center,
+            Vec3 playerCameraPos
     ) {
         ImmersiveCameraOrientation resolvedOrientation =
                 resolveBaseOrientation(
@@ -53,12 +52,12 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation resolveBaseOrientation(
-            MinecraftClient client,
+            Minecraft client,
             ImmersiveCameraOrientationMode orientationMode,
             ImmersiveCameraOrientation fixedOrientation,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos
+            Vec3 center,
+            Vec3 playerCameraPos
     ) {
         if (orientationMode == null) {
             return safeFallback(center, playerCameraPos, fixedOrientation);
@@ -81,10 +80,10 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation applyHardcodedOverrides(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             ImmersiveCameraOrientation resolvedOrientation
     ) {
         if (ImmersiveChestsConfigScreen.alwaysBarrelFace && isBarrel(client, blockPos)) {
@@ -114,32 +113,32 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static boolean isBarrel(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos
     ) {
         return client != null
-                && client.world != null
+                && client.level != null
                 && blockPos != null
-                && client.world.getBlockState(blockPos).getBlock() instanceof BarrelBlock;
+                && client.level.getBlockState(blockPos).getBlock() instanceof BarrelBlock;
     }
 
     public static ImmersiveCameraOrientation resolveBarrelOrientation(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos
+            Vec3 center,
+            Vec3 playerCameraPos
     ) {
-        if (client == null || client.world == null || blockPos == null) {
+        if (client == null || client.level == null || blockPos == null) {
             return safeFallback(center, playerCameraPos, ImmersiveCameraOrientation.SOUTH);
         }
 
-        var state = client.world.getBlockState(blockPos);
+        var state = client.level.getBlockState(blockPos);
 
-        if (!state.contains(Properties.FACING)) {
+        if (!state.hasProperty(BlockStateProperties.FACING)) {
             return safeFallback(center, playerCameraPos, ImmersiveCameraOrientation.SOUTH);
         }
 
-        Direction facing = state.get(Properties.FACING);
+        Direction facing = state.getValue(BlockStateProperties.FACING);
 
         if (ImmersiveChestsConfigScreen.debugLogging) {
             System.out.println("[ImmersiveChests] Barrel orientation override");
@@ -157,11 +156,11 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation applySmokerBlastFurnaceHorizontalFlip(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
             ImmersiveCameraOrientation orientation
     ) {
-        if (client == null || client.world == null || blockPos == null || orientation == null) {
+        if (client == null || client.level == null || blockPos == null || orientation == null) {
             return orientation;
         }
 
@@ -170,9 +169,9 @@ public final class ImmersiveOrientationResolver {
             return orientation;
         }
 
-        var block = client.world.getBlockState(blockPos).getBlock();
+        var block = client.level.getBlockState(blockPos).getBlock();
 
-        String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
+        String blockId = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString();
 
         if (blockId.equals("minecraft:smoker")
                 || blockId.equals("minecraft:blast_furnace")) {
@@ -183,14 +182,14 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation applyStonecutterAxisSymmetry(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             ImmersiveCameraOrientation resolvedOrientation
     ) {
         if (client == null
-                || client.world == null
+                || client.level == null
                 || blockPos == null
                 || center == null
                 || playerCameraPos == null
@@ -198,8 +197,8 @@ public final class ImmersiveOrientationResolver {
             return resolvedOrientation;
         }
 
-        var block = client.world.getBlockState(blockPos).getBlock();
-        String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
+        var block = client.level.getBlockState(blockPos).getBlock();
+        String blockId = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString();
 
         if (!blockId.equals("minecraft:stonecutter")) {
             return resolvedOrientation;
@@ -222,9 +221,9 @@ public final class ImmersiveOrientationResolver {
     }
     
     public static ImmersiveCameraOrientation applyAirPriority(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d playerCameraPos,
+            Vec3 playerCameraPos,
             ImmersiveCameraOrientation preferred
     ) {
         if (!ImmersiveChestsConfigScreen.prioritizeAirBlock || blockPos == null) {
@@ -242,29 +241,29 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static boolean isOrientationObstructed(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
             ImmersiveCameraOrientation orientation
     ) {
-        if (client == null || client.world == null || blockPos == null || orientation == null) {
+        if (client == null || client.level == null || blockPos == null || orientation == null) {
             return false;
         }
 
         BlockPos checkPos = switch (orientation) {
-            case TOP -> blockPos.up();
-            case BOTTOM -> blockPos.down();
+            case TOP -> blockPos.above();
+            case BOTTOM -> blockPos.below();
             case NORTH -> blockPos.north();
             case SOUTH -> blockPos.south();
             case EAST -> blockPos.east();
             case WEST -> blockPos.west();
         };
 
-        return !client.world.getBlockState(checkPos).isAir();
+        return !client.level.getBlockState(checkPos).isAir();
     }
 
     public static ImmersiveCameraOrientation nearestSideIgnoringBlocks(
-            Vec3d center,
-            Vec3d playerCameraPos
+            Vec3 center,
+            Vec3 playerCameraPos
     ) {
         if (center == null || playerCameraPos == null) {
             return ImmersiveCameraOrientation.SOUTH;
@@ -285,10 +284,10 @@ public final class ImmersiveOrientationResolver {
     }
 
     public static ImmersiveCameraOrientation blockFaceOrientation(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d center,
-            Vec3d playerCameraPos
+            Vec3 center,
+            Vec3 playerCameraPos
     ) {
         Direction facing = getFacingOrNull(client, blockPos);
 
@@ -300,11 +299,11 @@ public final class ImmersiveOrientationResolver {
     }
 
     public static ImmersiveCameraOrientation closestOpenSide(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d playerCameraPos
+            Vec3 playerCameraPos
     ) {
-        if (client == null || client.world == null || blockPos == null || playerCameraPos == null) {
+        if (client == null || client.level == null || blockPos == null || playerCameraPos == null) {
             return null;
         }
 
@@ -326,11 +325,11 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation closestOpenHorizontalSide(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d playerCameraPos
+            Vec3 playerCameraPos
     ) {
-        Vec3d flatPlayer = new Vec3d(
+        Vec3 flatPlayer = new Vec3(
                 playerCameraPos.x,
                 0.0,
                 playerCameraPos.z
@@ -339,21 +338,21 @@ public final class ImmersiveOrientationResolver {
         ImmersiveCameraOrientation best = null;
         double bestDistanceSq = Double.MAX_VALUE;
 
-        for (Direction direction : Direction.Type.HORIZONTAL) {
-            BlockPos sidePos = blockPos.offset(direction);
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos sidePos = blockPos.relative(direction);
 
-            if (!client.world.getBlockState(sidePos).isAir()) {
+            if (!client.level.getBlockState(sidePos).isAir()) {
                 continue;
             }
 
-            Vec3d sideCenter = Vec3d.ofCenter(sidePos);
-            Vec3d flatSideCenter = new Vec3d(
+            Vec3 sideCenter = Vec3.atCenterOf(sidePos);
+            Vec3 flatSideCenter = new Vec3(
                     sideCenter.x,
                     0.0,
                     sideCenter.z
             );
 
-            double distanceSq = flatPlayer.squaredDistanceTo(flatSideCenter);
+            double distanceSq = flatPlayer.distanceToSqr(flatSideCenter);
 
             if (distanceSq < bestDistanceSq) {
                 bestDistanceSq = distanceSq;
@@ -365,12 +364,12 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation closestOpenVerticalSide(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos,
-            Vec3d playerCameraPos
+            Vec3 playerCameraPos
     ) {
-        boolean topOpen = client.world.getBlockState(blockPos.up()).isAir();
-        boolean bottomOpen = client.world.getBlockState(blockPos.down()).isAir();
+        boolean topOpen = client.level.getBlockState(blockPos.above()).isAir();
+        boolean bottomOpen = client.level.getBlockState(blockPos.below()).isAir();
 
         if (topOpen && !bottomOpen) {
             return ImmersiveCameraOrientation.TOP;
@@ -381,8 +380,8 @@ public final class ImmersiveOrientationResolver {
         }
 
         if (topOpen && bottomOpen) {
-            double topDistanceSq = playerCameraPos.squaredDistanceTo(Vec3d.ofCenter(blockPos.up()));
-            double bottomDistanceSq = playerCameraPos.squaredDistanceTo(Vec3d.ofCenter(blockPos.down()));
+            double topDistanceSq = playerCameraPos.distanceToSqr(Vec3.atCenterOf(blockPos.above()));
+            double bottomDistanceSq = playerCameraPos.distanceToSqr(Vec3.atCenterOf(blockPos.below()));
 
             return topDistanceSq <= bottomDistanceSq
                     ? ImmersiveCameraOrientation.TOP
@@ -393,31 +392,31 @@ public final class ImmersiveOrientationResolver {
     }
 
     public static boolean isBlockedAbove(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos pos
     ) {
         return client != null
-                && client.world != null
+                && client.level != null
                 && pos != null
-                && !client.world.getBlockState(pos.up()).isAir();
+                && !client.level.getBlockState(pos.above()).isAir();
     }
 
     private static Direction getFacingOrNull(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos
     ) {
-        if (client == null || client.world == null || blockPos == null) {
+        if (client == null || client.level == null || blockPos == null) {
             return null;
         }
 
-        var state = client.world.getBlockState(blockPos);
+        var state = client.level.getBlockState(blockPos);
 
-        if (state.contains(Properties.HORIZONTAL_FACING)) {
-            return state.get(Properties.HORIZONTAL_FACING);
+        if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         }
 
-        if (state.contains(Properties.FACING)) {
-            return state.get(Properties.FACING);
+        if (state.hasProperty(BlockStateProperties.FACING)) {
+            return state.getValue(BlockStateProperties.FACING);
         }
 
         return null;
@@ -449,7 +448,7 @@ public final class ImmersiveOrientationResolver {
 
 
     public static ImmersiveCameraOrientation blockFacingRaw(
-            MinecraftClient client,
+            Minecraft client,
             BlockPos blockPos
     ) {
         Direction facing = getFacingOrNull(client, blockPos);
@@ -462,8 +461,8 @@ public final class ImmersiveOrientationResolver {
     }
 
     private static ImmersiveCameraOrientation safeFallback(
-            Vec3d center,
-            Vec3d playerCameraPos,
+            Vec3 center,
+            Vec3 playerCameraPos,
             ImmersiveCameraOrientation fallback
     ) {
         if (center != null && playerCameraPos != null) {

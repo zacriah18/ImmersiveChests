@@ -2,20 +2,19 @@ package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveTargetProfile;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
-
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.Vec3;
 
 public final class ImmersiveOffsetResolver {
 
     private ImmersiveOffsetResolver() {}
 
-    public static Vec3d resolve(
+    public static Vec3 resolve(
             ImmersiveTargetProfile profile,
             ImmersiveCameraOrientation resolvedOrientation,
             float resolvedYaw
     ) {
         if (profile == null || resolvedOrientation == null) {
-            return Vec3d.ZERO;
+            return Vec3.ZERO;
         }
 
         return switch (resolvedOrientation) {
@@ -42,14 +41,14 @@ public final class ImmersiveOffsetResolver {
         };
     }
 
-    private static Vec3d yawRelativeOffset(
+    private static Vec3 yawRelativeOffset(
             double offsetX,
             double offsetY,
             double offsetZ,
             float resolvedYaw
     ) {
-        Vec3d forward = forwardFromYaw(resolvedYaw);
-        Vec3d right = rightFromForward(forward);
+        Vec3 forward = forwardFromYaw(resolvedYaw);
+        Vec3 right = rightFromForward(forward);
 
         return relativeOffset(
                 offsetX,
@@ -60,14 +59,14 @@ public final class ImmersiveOffsetResolver {
         );
     }
 
-    private static Vec3d orientationRelativeOffset(
+    private static Vec3 orientationRelativeOffset(
             double offsetX,
             double offsetY,
             double offsetZ,
             ImmersiveCameraOrientation orientation
     ) {
-        Vec3d forward = forwardFromOrientation(orientation);
-        Vec3d right = rightFromOrientation(orientation);
+        Vec3 forward = forwardFromOrientation(orientation);
+        Vec3 right = rightFromOrientation(orientation);
 
         return relativeOffset(
                 offsetX,
@@ -78,54 +77,54 @@ public final class ImmersiveOffsetResolver {
         );
     }
 
-    private static Vec3d relativeOffset(
+    private static Vec3 relativeOffset(
             double offsetX,
             double offsetY,
             double offsetZ,
-            Vec3d forward,
-            Vec3d right
+            Vec3 forward,
+            Vec3 right
     ) {
-        return right.multiply(offsetX)
+        return right.scale(offsetX)
                 .add(0.0, offsetY, 0.0)
-                .add(forward.multiply(offsetZ));
+                .add(forward.scale(offsetZ));
     }
 
-    private static Vec3d forwardFromYaw(float yaw) {
+    private static Vec3 forwardFromYaw(float yaw) {
         double yawRad = Math.toRadians(yaw);
 
-        return new Vec3d(
+        return new Vec3(
                 Math.sin(yawRad),
                 0.0,
                 -Math.cos(yawRad)
         );
     }
 
-    private static Vec3d rightFromForward(Vec3d forward) {
-        return new Vec3d(
+    private static Vec3 rightFromForward(Vec3 forward) {
+        return new Vec3(
                 -forward.z,
                 0.0,
                 forward.x
         );
     }
 
-    private static Vec3d forwardFromOrientation(
+    private static Vec3 forwardFromOrientation(
             ImmersiveCameraOrientation orientation
     ) {
         return switch (orientation) {
-            case NORTH -> new Vec3d(0.0, 0.0, -1.0);
-            case SOUTH -> new Vec3d(0.0, 0.0, 1.0);
-            case EAST -> new Vec3d(1.0, 0.0, 0.0);
-            case WEST -> new Vec3d(-1.0, 0.0, 0.0);
-            case TOP, BOTTOM -> new Vec3d(0.0, 0.0, 1.0);
+            case NORTH -> new Vec3(0.0, 0.0, -1.0);
+            case SOUTH -> new Vec3(0.0, 0.0, 1.0);
+            case EAST -> new Vec3(1.0, 0.0, 0.0);
+            case WEST -> new Vec3(-1.0, 0.0, 0.0);
+            case TOP, BOTTOM -> new Vec3(0.0, 0.0, 1.0);
         };
     }
 
-    private static Vec3d rightFromOrientation(
+    private static Vec3 rightFromOrientation(
             ImmersiveCameraOrientation orientation
     ) {
-        Vec3d forward = forwardFromOrientation(orientation);
+        Vec3 forward = forwardFromOrientation(orientation);
 
-        return new Vec3d(
+        return new Vec3(
                 forward.z,
                 0.0,
                 -forward.x

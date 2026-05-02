@@ -1,15 +1,14 @@
 package com.zackbailey.immersivechests.client.records;
 
 import com.zackbailey.immersivechests.enums.ImmersiveTargetType;
-
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public record ImmersiveResolvedTarget(
         ImmersiveTargetType type,
         BlockPos blockPos,
-        Vec3d center,
-        Vec3d cameraOffset,
+        Vec3 center,
+        Vec3 cameraOffset,
         float yaw,
         float pitch
 ) {}

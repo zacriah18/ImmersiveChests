@@ -2,10 +2,10 @@ package com.zackbailey.immersivechests.client.mixin;
 
 import com.zackbailey.immersivechests.client.ImmersiveCameraState;
 import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen;
-import net.minecraft.client.render.Camera;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.client.Camera;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,11 +19,11 @@ public abstract class CameraMixin {
     protected abstract void setRotation(float yaw, float pitch);
 
     @Shadow
-    protected abstract void setPos(double x, double y, double z);
+    protected abstract void setPosition(double x, double y, double z);
 
-    @Inject(method = "update", at = @At("TAIL"))
+    @Inject(method = "setup", at = @At("TAIL"))
     private void immersivechests_afterCameraUpdate(
-            World area,
+            Level area,
             Entity focusedEntity,
             boolean thirdPerson,
             boolean inverseView,
@@ -34,16 +34,16 @@ public abstract class CameraMixin {
             return;
         }
 
-        Vec3d livePos = focusedEntity.getCameraPosVec(tickProgress);
-        Vec3d newPos = ImmersiveCameraState.animatePosition(livePos);
+        Vec3 livePos = focusedEntity.getEyePosition(tickProgress);
+        Vec3 newPos = ImmersiveCameraState.animatePosition(livePos);
 
-        this.setPos(newPos.x, newPos.y, newPos.z);
+        this.setPosition(newPos.x, newPos.y, newPos.z);
         this.setRotation(
-            ImmersiveCameraState.animateYaw(focusedEntity.getYaw(tickProgress)),
-            ImmersiveCameraState.animatePitch(focusedEntity.getPitch(tickProgress))
+            ImmersiveCameraState.animateYaw(focusedEntity.getViewYRot(tickProgress)),
+            ImmersiveCameraState.animatePitch(focusedEntity.getViewXRot(tickProgress))
         );
 
-        if (!ImmersiveCameraState.active && newPos.squaredDistanceTo(livePos) < 0.0001) {
+        if (!ImmersiveCameraState.active && newPos.distanceToSqr(livePos) < 0.0001) {
             ImmersiveCameraState.finishClosing();
         }
     }

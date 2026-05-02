@@ -9,8 +9,8 @@ import com.zackbailey.immersivechests.enums.ImmersiveYawMode;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public class ImmersiveChestsConfigScreen {
 
@@ -320,7 +320,7 @@ public class ImmersiveChestsConfigScreen {
         public static Screen create(Screen parent) {
                 ConfigBuilder builder = ConfigBuilder.create()
                                 .setParentScreen(parent)
-                                .setTitle(Text.literal("Immersive Chests"));
+                                .setTitle(Component.literal("Immersive Chests"));
 
                 ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
@@ -353,9 +353,9 @@ public class ImmersiveChestsConfigScreen {
         }
 
         private static void addCameraCategory(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
-                ConfigCategory camera = builder.getOrCreateCategory(Text.literal("Camera"));
+                ConfigCategory camera = builder.getOrCreateCategory(Component.literal("Camera"));
 
-                camera.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enable Immersive Camera"), enabled)
+                camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Enable Immersive Camera"), enabled)
                                 .setDefaultValue(defaultenabled)
                                 .setSaveConsumer(v -> enabled = v)
                                 .build());
@@ -365,35 +365,35 @@ public class ImmersiveChestsConfigScreen {
                 addDouble(camera, entryBuilder, "Distance Smoothing Strength", distanceSpeedScalar,
                                 defaultdistanceSpeedScalar, v -> distanceSpeedScalar = v);
 
-                camera.addEntry(entryBuilder.startBooleanToggle(Text.literal("Instant Animate"), instantAnimate)
+                camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Instant Animate"), instantAnimate)
                                 .setDefaultValue(defaultinstantAnimate)
                                 .setSaveConsumer(v -> instantAnimate = v)
                                 .build());
 
-                camera.addEntry(entryBuilder.startBooleanToggle(Text.literal("Debug Logging"), debugLogging)
+                camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Debug Logging"), debugLogging)
                                 .setDefaultValue(defaultdebugLogging)
                                 .setSaveConsumer(v -> debugLogging = v)
                                 .build());
         }
 
         private static void addSpecialCategory(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
-                ConfigCategory special = builder.getOrCreateCategory(Text.literal("Special"));
+                ConfigCategory special = builder.getOrCreateCategory(Component.literal("Special"));
 
                 addDouble(special, entryBuilder, "Boat Distance Behind", boatDistanceBehind, defaultboatDistanceBehind,
                                 v -> boatDistanceBehind = v);
 
                 special.addEntry(entryBuilder
-                                .startBooleanToggle(Text.literal("Always Orientate Barrel Face"), alwaysBarrelFace)
+                                .startBooleanToggle(Component.literal("Always Orientate Barrel Face"), alwaysBarrelFace)
                                 .setDefaultValue(defaultalwaysBarrelFace)
                                 .setSaveConsumer(v -> alwaysBarrelFace = v)
                                 .build());
 
-                special.addEntry(entryBuilder.startBooleanToggle(Text.literal("Stacked Chest Support"), stackedChestSupport)
+                special.addEntry(entryBuilder.startBooleanToggle(Component.literal("Stacked Chest Support"), stackedChestSupport)
                                 .setDefaultValue(defaultstackedChestSupport)
                                 .setSaveConsumer(v -> stackedChestSupport = v)
                                 .build());
 
-                special.addEntry(entryBuilder.startBooleanToggle(Text.literal("Prioritize Air Block"), prioritizeAirBlock)
+                special.addEntry(entryBuilder.startBooleanToggle(Component.literal("Prioritize Air Block"), prioritizeAirBlock)
                                 .setDefaultValue(defaultprioritizeAirBlock)
                                 .setSaveConsumer(v -> prioritizeAirBlock = v)
                                 .build());
@@ -404,7 +404,7 @@ public class ImmersiveChestsConfigScreen {
                         ConfigEntryBuilder entryBuilder,
                         String name,
                         BlockSettings settings) {
-                ConfigCategory category = builder.getOrCreateCategory(Text.literal(name));
+                ConfigCategory category = builder.getOrCreateCategory(Component.literal(name));
 
                 addDouble(category, entryBuilder, "Offset X / Left-Right", settings.offsetX, settings.defaultOffsetX,
                                 v -> settings.offsetX = v);
@@ -420,7 +420,7 @@ public class ImmersiveChestsConfigScreen {
                 addDouble(category, entryBuilder, "Side Offset Z / Forward-Back", settings.hozOffsetZ, settings.defaultHozOffsetZ, 
                                 v -> settings.hozOffsetZ = v);
                 
-                category.addEntry(entryBuilder.startDoubleField(Text.literal("POV Tilt"), settings.tilt)
+                category.addEntry(entryBuilder.startDoubleField(Component.literal("POV Tilt"), settings.tilt)
                                 .setDefaultValue(settings.defaultTilt)
                                 .setMin(-90.0)
                                 .setMax(90.0)
@@ -428,43 +428,43 @@ public class ImmersiveChestsConfigScreen {
                                 .build());
                 
                 category.addEntry(entryBuilder
-                                .startBooleanToggle(Text.literal("Flip Yaw"), settings.flipYaw)
+                                .startBooleanToggle(Component.literal("Flip Yaw"), settings.flipYaw)
                                 .setDefaultValue(settings.defaultFlipYaw)
                                 .setSaveConsumer(v -> settings.flipYaw = v)
                                 .build());
                 
                 category.addEntry(entryBuilder
                         .startEnumSelector(
-                                Text.literal("Orientation Mode"),
+                                Component.literal("Orientation Mode"),
                                 ImmersiveCameraOrientationMode.class,
                                 settings.orientationMode
                         )
                         .setDefaultValue(settings.defaultOrientationMode)
                         .setEnumNameProvider(mode ->
-                                Text.translatable("immersivechests.orientation_mode." + mode.name().toLowerCase())
+                                Component.translatable("immersivechests.orientation_mode." + mode.name().toLowerCase())
                         )
                         .setSaveConsumer(v -> settings.orientationMode = v)
                         .build());
                 
                         category.addEntry(entryBuilder
                         .startEnumSelector(
-                                Text.literal("Fixed Orientation"),
+                                Component.literal("Fixed Orientation"),
                                 ImmersiveCameraOrientation.class,
                                 settings.orientation
                         )
                         .setDefaultValue(settings.defaultOrientation)
-                        .setTooltip(Text.literal("Only used when Orientation Mode is Fixed."))
+                        .setTooltip(Component.literal("Only used when Orientation Mode is Fixed."))
                         .setEnumNameProvider(orientation ->
-                                Text.translatable("immersivechests.orientation." + orientation.name().toLowerCase())
+                                Component.translatable("immersivechests.orientation." + orientation.name().toLowerCase())
                         )
                         .setSaveConsumer(v -> settings.orientation = v)
                         .build());
 
                 category.addEntry(entryBuilder
-                                .startEnumSelector(Text.literal("Yaw Mode"), ImmersiveYawMode.class, settings.yawMode)
+                                .startEnumSelector(Component.literal("Yaw Mode"), ImmersiveYawMode.class, settings.yawMode)
                                 .setDefaultValue(settings.defaultYawMode)
                                 .setEnumNameProvider(mode ->
-                                        Text.translatable("immersivechests.yaw." + mode.name().toLowerCase())
+                                        Component.translatable("immersivechests.yaw." + mode.name().toLowerCase())
                                 )
                                 .setSaveConsumer(v -> settings.yawMode = v)
                                 .build());
@@ -477,7 +477,7 @@ public class ImmersiveChestsConfigScreen {
                         double value,
                         double defaultValue,
                         Consumer<Double> saveConsumer) {
-                category.addEntry(entryBuilder.startDoubleField(Text.literal(label), value)
+                category.addEntry(entryBuilder.startDoubleField(Component.literal(label), value)
                                 .setDefaultValue(defaultValue)
                                 .setMin(-10.0)
                                 .setMax(10.0)

@@ -1,9 +1,8 @@
 package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveResolvedTarget;
-
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 public class ImmersiveCameraState {
     public static boolean active = false;
@@ -13,8 +12,8 @@ public class ImmersiveCameraState {
 
     private static ImmersiveResolvedTarget target = null;
 
-    private static Vec3d startPos = null;
-    private static Vec3d finalPos = null;
+    private static Vec3 startPos = null;
+    private static Vec3 finalPos = null;
 
     private static float startYaw = 0.0f;
     private static float startPitch = 0.0f;
@@ -60,7 +59,7 @@ public class ImmersiveCameraState {
     }
 
     public static void prepareCameraTransition(
-            Vec3d playerCameraPos,
+            Vec3 playerCameraPos,
             float playerYaw,
             float playerPitch
     ) {
@@ -74,12 +73,12 @@ public class ImmersiveCameraState {
 
         finalPos = target.center().add(target.cameraOffset());
         finalYaw = target.yaw();
-        finalPitch = MathHelper.clamp(target.pitch(), -90.0f, 90.0f);
+        finalPitch = Mth.clamp(target.pitch(), -90.0f, 90.0f);
 
         animationDistance = Math.max(0.5, playerCameraPos.distanceTo(finalPos));
     }
 
-    public static Vec3d animateToFinalPosition(Vec3d livePlayerPos) {
+    public static Vec3 animateToFinalPosition(Vec3 livePlayerPos) {
         if (startPos == null || finalPos == null) {
             return livePlayerPos;
         }
@@ -87,7 +86,7 @@ public class ImmersiveCameraState {
         return startPos.lerp(finalPos, progress);
     }
 
-    public static Vec3d animateToStartPosition(Vec3d livePlayerPos) {
+    public static Vec3 animateToStartPosition(Vec3 livePlayerPos) {
         if (finalPos == null) {
             return livePlayerPos;
         }
@@ -95,7 +94,7 @@ public class ImmersiveCameraState {
         return finalPos.lerp(livePlayerPos, 1.0f - progress);
     }
 
-    public static Vec3d animatePosition(Vec3d livePlayerPos) {
+    public static Vec3 animatePosition(Vec3 livePlayerPos) {
         return active
                 ? animateToFinalPosition(livePlayerPos)
                 : animateToStartPosition(livePlayerPos);
@@ -103,16 +102,16 @@ public class ImmersiveCameraState {
 
     public static float animateYaw(float liveYaw) {
         if (active) {
-            return MathHelper.lerpAngleDegrees(progress, startYaw, finalYaw);
+            return Mth.rotLerp(progress, startYaw, finalYaw);
         }
 
-        return MathHelper.lerpAngleDegrees(1.0f - progress, finalYaw, liveYaw);
+        return Mth.rotLerp(1.0f - progress, finalYaw, liveYaw);
     }
 
     public static float animatePitch(float livePitch) {
         return active
-                ? MathHelper.lerp(progress, startPitch, finalPitch)
-                : MathHelper.lerp(1.0f - progress, finalPitch, livePitch);
+                ? Mth.lerp(progress, startPitch, finalPitch)
+                : Mth.lerp(1.0f - progress, finalPitch, livePitch);
     }
 
     public static void finishClosing() {
