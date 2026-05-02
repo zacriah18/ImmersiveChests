@@ -15,10 +15,10 @@
 	"environment": "client",
 	"entrypoints": {
 		"main": [
-			"com.zackbailey.immersivechests.Immersivechests"
+		"com.zackbailey.immersivechests.ImmersiveChests"
 		],
 		"client": [
-			"com.zackbailey.immersivechests.client.ImmersivechestsClient"
+		"com.zackbailey.immersivechests.client.ImmersivechestsClient"
 		],
 		"modmenu": [
 			"com.zackbailey.immersivechests.client.ImmersiveChestsModMenu"
