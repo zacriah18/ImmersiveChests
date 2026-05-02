@@ -121,7 +121,7 @@ public class ImmersiveChestsConfigScreen {
         // Y = vertical up/down
         // Z = local forward/back / distance along selected orientation
         public static final BlockSettings CHEST = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 0.85, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -130,15 +130,15 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings BARREL = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.5, 0.0,
+                        0.0, 0.0, 1.5,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.AXIS);
         public static final BlockSettings DOUBLE_CHEST_LEFT = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.5, 0.68, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -147,16 +147,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings DOUBLE_CHEST_RIGHT = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
-                        0.0,
-                        false,
-                        ImmersiveCameraOrientationMode.FIXED,
-                        ImmersiveCameraOrientation.TOP,
-                        ImmersiveYawMode.FACE);
-
-        public static final BlockSettings ENDER_CHEST = new BlockSettings(
-                        0.0, 1, 0.0,
+                        -0.5, 0.68, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -165,17 +156,16 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings CRAFTING_TABLE = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.19, 0.0,
+                        0.0, 0.0, 1.47,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.AXIS);
-        
                         
         public static final BlockSettings AUTO_CRAFTER = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 1.19, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -185,16 +175,16 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings STONECUTTER = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 0.0, -0.9,
                         0.0,
-                        false,
+                        true,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings CARTOGRAPHY_TABLE = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.38, 0.0,
+                        0.0, 0.0, 1.47,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -202,8 +192,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings SMITHING_TABLE = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.38, 0.0,
+                        0.0, 0.0, 1.47,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -211,8 +201,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings LOOM = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.38, 0.0,
+                        0.0, 0.0, 1.47,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -220,8 +210,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings GRINDSTONE = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.05, 0.0,
+                        0.0, 0.0, 0.94,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -230,7 +220,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings FURNACE = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, 1.5,
+                        0.0, 0.0, 1.48,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -239,7 +229,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings SMOKER = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, -1.5,
+                        0.0, 0.0, -1.48,
                         0.0,
                         true,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -248,7 +238,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings BLAST_FURNACE = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, -1.5,
+                        0.0, 0.0, -1.48,
                         0.0,
                         true,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -256,8 +246,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings ANVIL = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 1.24, 0.0,
+                        0.0, 0.2, 0.68,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -265,7 +255,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings ENCHANTING_TABLE = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 1, 0.009,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -275,7 +265,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings BREWING_STAND = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 0.2, 1,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.NEAREST_AXIS,
@@ -283,8 +273,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings BEACON = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 0.8, 0.0,
+                        0.0, 0.8, 0, 
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -292,7 +282,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings LECTERN = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 1.15, 0.22,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -301,7 +291,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings CHEST_MINECART = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 1.66, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -310,7 +300,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings CHEST_BOAT = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 1.64, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -320,7 +310,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings SHULKER_BOX = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, 1,
+                        0.0, 0.0, 1.055,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.NEAREST_AXIS,
@@ -336,13 +326,12 @@ public class ImmersiveChestsConfigScreen {
 
                 addCameraCategory(builder, entryBuilder);
                 addSpecialCategory(builder, entryBuilder);
-
                 addBlockCategory(builder, entryBuilder, "Chest", CHEST);
                 addBlockCategory(builder, entryBuilder, "Double Chest Left", DOUBLE_CHEST_LEFT);
                 addBlockCategory(builder, entryBuilder, "Double Chest Right", DOUBLE_CHEST_RIGHT);
                 addBlockCategory(builder, entryBuilder, "Barrel", BARREL);
-                addBlockCategory(builder, entryBuilder, "Ender Chest", ENDER_CHEST);
                 addBlockCategory(builder, entryBuilder, "Crafting Table", CRAFTING_TABLE);
+                addBlockCategory(builder, entryBuilder, "Crafter Table", AUTO_CRAFTER);
                 addBlockCategory(builder, entryBuilder, "Stonecutter", STONECUTTER);
                 addBlockCategory(builder, entryBuilder, "Cartography Table", CARTOGRAPHY_TABLE);
                 addBlockCategory(builder, entryBuilder, "Smithing Table", SMITHING_TABLE);
