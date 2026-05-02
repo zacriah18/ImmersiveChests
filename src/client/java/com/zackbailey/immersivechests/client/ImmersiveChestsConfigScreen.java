@@ -175,9 +175,9 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings STONECUTTER = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, -0.9,
+                        0.0, 0.0, 0.9,
                         0.0,
-                        true,
+                        false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.FACE);
@@ -219,7 +219,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings FURNACE = new BlockSettings(
-                        0.0, 1, 0.0,
+                        0.0, 1.48, 0.0,
                         0.0, 0.0, 1.48,
                         0.0,
                         false,
@@ -228,19 +228,19 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings SMOKER = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, -1.48,
+                        0.0, 1.48, 0.0,
+                        0.0, 0.0, 1.48,
                         0.0,
-                        true,
+                        false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
                         ImmersiveCameraOrientation.NORTH,
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings BLAST_FURNACE = new BlockSettings(
-                        0.0, 1, 0.0,
-                        0.0, 0.0, -1.48,
+                        0.0, 1.48, 0.0,
+                        0.0, 0.0, 1.48,
                         0.0,
-                        true,
+                        false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
                         ImmersiveCameraOrientation.NORTH,
                         ImmersiveYawMode.FACE);

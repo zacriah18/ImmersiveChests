@@ -96,27 +96,21 @@ public final class ImmersiveOrientationResolver {
             );
         }
 
+        resolvedOrientation = applySmokerBlastFurnaceHorizontalFlip(
+                client,
+                blockPos,
+                resolvedOrientation
+        );
+
+        resolvedOrientation = applyStonecutterAxisSymmetry(
+            client,
+            blockPos,
+            center,
+            playerCameraPos,
+            resolvedOrientation
+    );
+
         return resolvedOrientation;
-    }
-
-    public static ImmersiveCameraOrientation applyAirPriority(
-            MinecraftClient client,
-            BlockPos blockPos,
-            Vec3d playerCameraPos,
-            ImmersiveCameraOrientation preferred
-    ) {
-        if (!ImmersiveChestsConfigScreen.prioritizeAirBlock || blockPos == null) {
-            return preferred;
-        }
-
-        if (!isOrientationObstructed(client, blockPos, preferred)) {
-            return preferred;
-        }
-
-        ImmersiveCameraOrientation openSide =
-                closestOpenSide(client, blockPos, playerCameraPos);
-
-        return openSide != null ? openSide : preferred;
     }
 
     private static boolean isBarrel(
@@ -160,6 +154,104 @@ public final class ImmersiveOrientationResolver {
             case EAST -> ImmersiveCameraOrientation.EAST;
             case WEST -> ImmersiveCameraOrientation.WEST;
         };
+    }
+
+    private static ImmersiveCameraOrientation applySmokerBlastFurnaceHorizontalFlip(
+            MinecraftClient client,
+            BlockPos blockPos,
+            ImmersiveCameraOrientation orientation
+    ) {
+        if (client == null || client.world == null || blockPos == null || orientation == null) {
+            return orientation;
+        }
+
+        if (orientation == ImmersiveCameraOrientation.TOP
+                || orientation == ImmersiveCameraOrientation.BOTTOM) {
+            return orientation;
+        }
+
+        var block = client.world.getBlockState(blockPos).getBlock();
+
+        String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
+
+        if (blockId.equals("minecraft:smoker")
+                || blockId.equals("minecraft:blast_furnace")) {
+            return oppositeAxis(orientation);
+        }
+
+        return orientation;
+    }
+
+    private static ImmersiveCameraOrientation applyStonecutterAxisSymmetry(
+            MinecraftClient client,
+            BlockPos blockPos,
+            Vec3d center,
+            Vec3d playerCameraPos,
+            ImmersiveCameraOrientation resolvedOrientation
+    ) {
+        if (client == null
+                || client.world == null
+                || blockPos == null
+                || center == null
+                || playerCameraPos == null
+                || resolvedOrientation == null) {
+            return resolvedOrientation;
+        }
+
+        var block = client.world.getBlockState(blockPos).getBlock();
+        String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
+
+        if (!blockId.equals("minecraft:stonecutter")) {
+            return resolvedOrientation;
+        }
+
+        if (resolvedOrientation == ImmersiveCameraOrientation.TOP
+                || resolvedOrientation == ImmersiveCameraOrientation.BOTTOM) {
+            return resolvedOrientation;
+        }
+
+        ImmersiveCameraOrientation face = resolvedOrientation;
+        ImmersiveCameraOrientation opposite = oppositeAxis(face);
+        ImmersiveCameraOrientation nearest = nearestSideIgnoringBlocks(center, playerCameraPos);
+
+        if (nearest == face || nearest == opposite) {
+            return nearest;
+        }
+
+        return face;
+    }
+
+    private static Vec3d orientationCenter(
+            Vec3d center,
+            ImmersiveCameraOrientation orientation
+    ) {
+        return switch (orientation) {
+            case NORTH -> center.add(0.0, 0.0, -1.0);
+            case SOUTH -> center.add(0.0, 0.0, 1.0);
+            case EAST -> center.add(1.0, 0.0, 0.0);
+            case WEST -> center.add(-1.0, 0.0, 0.0);
+            default -> center;
+        };
+    }
+
+    public static ImmersiveCameraOrientation applyAirPriority(
+            MinecraftClient client,
+            BlockPos blockPos,
+            Vec3d playerCameraPos,
+            ImmersiveCameraOrientation preferred
+    ) {
+        if (!ImmersiveChestsConfigScreen.prioritizeAirBlock || blockPos == null) {
+            return preferred;
+        }
+
+        if (!isOrientationObstructed(client, blockPos, preferred)) {
+            return preferred;
+        }
+
+        ImmersiveCameraOrientation openSide =
+                closestOpenSide(client, blockPos, playerCameraPos);
+
+        return openSide != null ? openSide : preferred;
     }
 
     private static boolean isOrientationObstructed(
@@ -229,6 +321,28 @@ public final class ImmersiveOrientationResolver {
             return null;
         }
 
+        ImmersiveCameraOrientation horizontal = closestOpenHorizontalSide(
+                client,
+                blockPos,
+                playerCameraPos
+        );
+
+        if (horizontal != null) {
+            return horizontal;
+        }
+
+        return closestOpenVerticalSide(
+                client,
+                blockPos,
+                playerCameraPos
+        );
+    }
+
+    private static ImmersiveCameraOrientation closestOpenHorizontalSide(
+            MinecraftClient client,
+            BlockPos blockPos,
+            Vec3d playerCameraPos
+    ) {
         Vec3d flatPlayer = new Vec3d(
                 playerCameraPos.x,
                 0.0,
@@ -261,6 +375,34 @@ public final class ImmersiveOrientationResolver {
         }
 
         return best;
+    }
+
+    private static ImmersiveCameraOrientation closestOpenVerticalSide(
+            MinecraftClient client,
+            BlockPos blockPos,
+            Vec3d playerCameraPos
+    ) {
+        boolean topOpen = client.world.getBlockState(blockPos.up()).isAir();
+        boolean bottomOpen = client.world.getBlockState(blockPos.down()).isAir();
+
+        if (topOpen && !bottomOpen) {
+            return ImmersiveCameraOrientation.TOP;
+        }
+
+        if (bottomOpen && !topOpen) {
+            return ImmersiveCameraOrientation.BOTTOM;
+        }
+
+        if (topOpen && bottomOpen) {
+            double topDistanceSq = playerCameraPos.squaredDistanceTo(Vec3d.ofCenter(blockPos.up()));
+            double bottomDistanceSq = playerCameraPos.squaredDistanceTo(Vec3d.ofCenter(blockPos.down()));
+
+            return topDistanceSq <= bottomDistanceSq
+                    ? ImmersiveCameraOrientation.TOP
+                    : ImmersiveCameraOrientation.BOTTOM;
+        }
+
+        return null;
     }
 
     public static boolean isBlockedAbove(
