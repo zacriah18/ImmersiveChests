@@ -174,7 +174,8 @@ public final class ImmersiveOrientationResolver {
         String blockId = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString();
 
         if (blockId.equals("minecraft:smoker")
-                || blockId.equals("minecraft:blast_furnace")) {
+                || blockId.equals("minecraft:blast_furnace")
+                || blockId.equals("minecraft:furnace")) {
             return oppositeAxis(orientation);
         }
 
