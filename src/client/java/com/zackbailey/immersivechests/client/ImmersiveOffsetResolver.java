@@ -2,6 +2,7 @@ package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveTargetProfile;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
+import com.zackbailey.immersivechests.enums.ImmersiveTargetType;
 
 import net.minecraft.util.math.Vec3d;
 
@@ -17,6 +18,11 @@ public final class ImmersiveOffsetResolver {
         if (profile == null || resolvedOrientation == null) {
             return Vec3d.ZERO;
         }
+
+        if (profile.type() == ImmersiveTargetType.CHEST_BOAT) {
+                return resolveEntityBackOffset(profile, resolvedYaw);
+        }
+
 
         return switch (resolvedOrientation) {
             case TOP -> yawRelativeOffset(
@@ -131,4 +137,33 @@ public final class ImmersiveOffsetResolver {
                 -forward.x
         );
     }
+
+    private static Vec3d resolveEntityBackOffset(
+                ImmersiveTargetProfile profile,
+                float yaw
+        ) {
+        double yawRad = Math.toRadians(yaw);
+
+        double distance = profile.offsetZ();
+
+        if (profile.type() == ImmersiveTargetType.CHEST_BOAT) {
+        distance += ImmersiveChestsConfigScreen.boatDistanceBehind;
+        }
+
+        Vec3d backward = new Vec3d(
+                Math.sin(yawRad),
+                0.0,
+                -Math.cos(yawRad)
+        );
+
+        Vec3d right = new Vec3d(
+                Math.cos(yawRad),
+                0.0,
+                Math.sin(yawRad)
+        );
+
+        return right.multiply(profile.offsetX())
+                .add(0.0, profile.offsetY(), 0.0)
+                .add(backward.multiply(distance));
+        }
 }

@@ -1,7 +1,7 @@
 package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveResolvedTarget;
-
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
@@ -22,8 +22,18 @@ public class ImmersiveCameraState {
     private static float finalYaw = 0.0f;
     private static float finalPitch = 0.0f;
 
+    private static Vec3d smoothedFinalPos = null;
+    private static float smoothedFinalYaw = 0.0f;
+    private static float smoothedFinalPitch = 0.0f;
+
+    private ImmersiveCameraState() {}
+
     public static void setTarget(ImmersiveResolvedTarget resolvedTarget) {
         target = resolvedTarget;
+
+        if (target != null && startPos != null) {
+            refreshFinalTarget();
+        }
     }
 
     public static void setActive(boolean value) {
@@ -72,16 +82,48 @@ public class ImmersiveCameraState {
         startYaw = playerYaw;
         startPitch = playerPitch;
 
-        finalPos = target.center().add(target.cameraOffset());
-        finalYaw = target.yaw();
-        finalPitch = MathHelper.clamp(target.pitch(), -90.0f, 90.0f);
+        refreshFinalTarget();
 
-        animationDistance = Math.max(0.5, playerCameraPos.distanceTo(finalPos));
+        if (finalPos != null) {
+            animationDistance = Math.max(0.5, playerCameraPos.distanceTo(finalPos));
+        }
+    }
+
+    private static void refreshFinalTarget() {
+        if (target == null) {
+            return;
+        }
+
+        Vec3d rawFinalPos = target.currentCenter().add(target.currentCameraOffset());
+        float rawFinalYaw = target.currentLookYawValue();
+        float rawFinalPitch = MathHelper.clamp(target.currentPitchValue(), -90.0f, 90.0f);
+
+        if (smoothedFinalPos == null) {
+            smoothedFinalPos = rawFinalPos;
+            smoothedFinalYaw = rawFinalYaw;
+            smoothedFinalPitch = rawFinalPitch;
+        } else {
+            double smoothing = 0.35;
+
+            smoothedFinalPos = smoothedFinalPos.lerp(rawFinalPos, smoothing);
+            smoothedFinalYaw = MathHelper.lerpAngleDegrees((float) smoothing, smoothedFinalYaw, rawFinalYaw);
+            smoothedFinalPitch = MathHelper.lerp((float) smoothing, smoothedFinalPitch, rawFinalPitch);
+        }
+
+        finalPos = smoothedFinalPos;
+        finalYaw = smoothedFinalYaw;
+        finalPitch = smoothedFinalPitch;
     }
 
     public static Vec3d animateToFinalPosition(Vec3d livePlayerPos) {
         if (startPos == null || finalPos == null) {
             return livePlayerPos;
+        }
+
+        refreshFinalTarget();
+
+        if (target != null && target.isEntityTarget() && progress >= 1.0f) {
+            return finalPos;
         }
 
         return startPos.lerp(finalPos, progress);
@@ -103,6 +145,7 @@ public class ImmersiveCameraState {
 
     public static float animateYaw(float liveYaw) {
         if (active) {
+            refreshFinalTarget();
             return MathHelper.lerpAngleDegrees(progress, startYaw, finalYaw);
         }
 
@@ -110,9 +153,12 @@ public class ImmersiveCameraState {
     }
 
     public static float animatePitch(float livePitch) {
-        return active
-                ? MathHelper.lerp(progress, startPitch, finalPitch)
-                : MathHelper.lerp(1.0f - progress, finalPitch, livePitch);
+        if (active) {
+            refreshFinalTarget();
+            return MathHelper.lerp(progress, startPitch, finalPitch);
+        }
+
+        return MathHelper.lerp(1.0f - progress, finalPitch, livePitch);
     }
 
     public static void finishClosing() {
@@ -127,7 +173,26 @@ public class ImmersiveCameraState {
 
         startYaw = 0.0f;
         startPitch = 0.0f;
+
         finalYaw = 0.0f;
         finalPitch = 0.0f;
+
+        smoothedFinalPos = null;
+        smoothedFinalYaw = 0.0f;
+        smoothedFinalPitch = 0.0f;
+    }
+
+    public static void refreshActiveTarget(
+            MinecraftClient client,
+            Vec3d playerCameraPos,
+            float playerYaw
+    ) {
+        if (!active
+                || target == null
+                || !target.isEntityTarget()) {
+            return;
+        }
+
+        refreshFinalTarget();
     }
 }

@@ -19,10 +19,21 @@ public final class ImmersiveYawResolver {
             BlockPos blockPos,
             Vec3d center,
             Vec3d playerCameraPos,
-            float playerYaw
+            float playerYaw,
+            Float entityYaw
     ) {
         if (profile == null) {
             return MathHelper.wrapDegrees(playerYaw);
+        }
+
+        if (entityYaw != null) {
+            float yaw = entityYaw;
+
+            if (profile.flipYaw()) {
+                yaw += 180.0f;
+            }
+
+            return MathHelper.wrapDegrees(yaw);
         }
 
         float yaw = switch (profile.yawMode()) {

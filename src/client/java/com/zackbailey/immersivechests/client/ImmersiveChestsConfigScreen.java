@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 import com.zackbailey.immersivechests.enums.ImmersiveYawMode;
+import com.zackbailey.immersivechests.enums.ImmersiveAirPriorityMode;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -16,7 +17,7 @@ public class ImmersiveChestsConfigScreen {
 
         // --- GENERAL CAMERA ---
         public static boolean enabled = true;
-        public static double animationSpeed = 0.10;
+        public static double animationSpeed = 0.15;
         public static boolean debugLogging = false;
         public static double distanceSpeedScalar = 0.20;
         public static boolean instantAnimate = false;
@@ -31,13 +32,17 @@ public class ImmersiveChestsConfigScreen {
         public static double boatDistanceBehind = 0.5;
         public static boolean alwaysBarrelFace = true;
         public static boolean stackedChestSupport = true;
+        public static boolean stonecutterAxisSymmetry = true;
         public static boolean prioritizeAirBlock = true;
-        
+        public static ImmersiveAirPriorityMode airPriorityMode = ImmersiveAirPriorityMode.NON_SOLID_BLOCKS;
+
         public static final double defaultboatDistanceBehind = boatDistanceBehind;
         public static final boolean defaultalwaysBarrelFace = alwaysBarrelFace;
         public static final boolean defaultstackedChestSupport = stackedChestSupport;
+        public static final boolean defaultstonecutterAxisSymmetry = stonecutterAxisSymmetry;
         public static final boolean defaultprioritizeAirBlock = prioritizeAirBlock;
-        
+        public static final ImmersiveAirPriorityMode defaultairPriorityMode = airPriorityMode;
+
         public static class BlockSettings {
                 public double offsetX;
                 public double offsetY;
@@ -317,6 +322,15 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.FACE);
 
+        public static final BlockSettings COMMAND_BLOCK = new BlockSettings(
+                        0.0, 1.2, 0.04,
+                        0.0, -0.1, 1.2,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.BLOCK_FACE,
+                        ImmersiveCameraOrientation.TOP,
+                        ImmersiveYawMode.AXIS);
+
         public static Screen create(Screen parent) {
                 ConfigBuilder builder = ConfigBuilder.create()
                                 .setParentScreen(parent)
@@ -348,6 +362,7 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Chest Minecart", CHEST_MINECART);
                 addBlockCategory(builder, entryBuilder, "Chest Boat", CHEST_BOAT);
                 addBlockCategory(builder, entryBuilder, "Shulker Box", SHULKER_BOX);
+                addBlockCategory(builder, entryBuilder, "Command Block", COMMAND_BLOCK);
 
                 return builder.build();
         }
@@ -393,9 +408,23 @@ public class ImmersiveChestsConfigScreen {
                                 .setSaveConsumer(v -> stackedChestSupport = v)
                                 .build());
 
+                special.addEntry(entryBuilder.startBooleanToggle(Text.literal("Stonecutter Axis Symmetry"), stonecutterAxisSymmetry)
+                                .setDefaultValue(defaultstonecutterAxisSymmetry)
+                                .setSaveConsumer(v -> stonecutterAxisSymmetry = v)
+                                .build());
+
                 special.addEntry(entryBuilder.startBooleanToggle(Text.literal("Prioritize Air Block"), prioritizeAirBlock)
                                 .setDefaultValue(defaultprioritizeAirBlock)
                                 .setSaveConsumer(v -> prioritizeAirBlock = v)
+                                .build());
+
+                special.addEntry(entryBuilder
+                                .startEnumSelector(Text.literal("Air Priority Mode"), ImmersiveAirPriorityMode.class, airPriorityMode)
+                                .setDefaultValue(defaultairPriorityMode)
+                                .setEnumNameProvider(mode ->
+                                        Text.translatable("immersivechests.air_priority." + mode.name().toLowerCase())
+                                )
+                                .setSaveConsumer(v -> airPriorityMode = v)
                                 .build());
         }
 

@@ -1,5 +1,5 @@
 package com.zackbailey.immersivechests.client.mixin;
-
+import net.minecraft.client.MinecraftClient;
 import com.zackbailey.immersivechests.client.ImmersiveCameraState;
 import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen;
 import net.minecraft.client.render.Camera;
@@ -35,6 +35,13 @@ public abstract class CameraMixin {
         }
 
         Vec3d livePos = focusedEntity.getCameraPosVec(tickProgress);
+
+        ImmersiveCameraState.refreshActiveTarget(
+                MinecraftClient.getInstance(),
+                livePos,
+                focusedEntity.getYaw(tickProgress)
+        );
+
         Vec3d newPos = ImmersiveCameraState.animatePosition(livePos);
 
         this.setPos(newPos.x, newPos.y, newPos.z);

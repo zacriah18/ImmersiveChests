@@ -26,5 +26,6 @@ public enum ImmersiveTargetType {
     CHEST_BOAT,
     LECTERN_BOOK,
     SHULKER_BOX,
-    AUTO_CRAFTER
+    AUTO_CRAFTER,
+    COMMAND_BLOCK
 }

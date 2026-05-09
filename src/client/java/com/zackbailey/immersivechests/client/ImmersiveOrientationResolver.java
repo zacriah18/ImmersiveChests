@@ -4,6 +4,7 @@ import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 
 import net.minecraft.block.BarrelBlock;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -108,7 +109,15 @@ public final class ImmersiveOrientationResolver {
             center,
             playerCameraPos,
             resolvedOrientation
-    );
+        );
+
+        resolvedOrientation = applyStackedChestSidePreference(
+                client,
+                blockPos,
+                center,
+                playerCameraPos,
+                resolvedOrientation
+        );
 
         return resolvedOrientation;
     }
@@ -199,6 +208,10 @@ public final class ImmersiveOrientationResolver {
             return resolvedOrientation;
         }
 
+        if (!ImmersiveChestsConfigScreen.stonecutterAxisSymmetry) {
+            return resolvedOrientation;
+        }
+
         var block = client.world.getBlockState(blockPos).getBlock();
         String blockId = net.minecraft.registry.Registries.BLOCK.getId(block).toString();
 
@@ -222,6 +235,48 @@ public final class ImmersiveOrientationResolver {
         return face;
     }
     
+    private static ImmersiveCameraOrientation applyStackedChestSidePreference(
+            MinecraftClient client,
+            BlockPos blockPos,
+            Vec3d center,
+            Vec3d playerCameraPos,
+            ImmersiveCameraOrientation resolvedOrientation
+    ) {
+        if (!ImmersiveChestsConfigScreen.stackedChestSupport) {
+            return resolvedOrientation;
+        }
+
+        if (client == null || client.world == null || blockPos == null || center == null || playerCameraPos == null) {
+            return resolvedOrientation;
+        }
+
+        if (!isChest(client, blockPos)) {
+            return resolvedOrientation;
+        }
+
+        if (!isChestStackedVertically(client, blockPos)) {
+            return resolvedOrientation;
+        }
+
+        if (resolvedOrientation == ImmersiveCameraOrientation.TOP
+                || resolvedOrientation == ImmersiveCameraOrientation.BOTTOM) {
+            return nearestSideIgnoringBlocks(center, playerCameraPos);
+        }
+
+        return resolvedOrientation;
+    }
+
+    private static boolean isChestStackedVertically(MinecraftClient client, BlockPos pos) {
+        return isChest(client, pos.up()) || isChest(client, pos.down());
+    }
+
+    private static boolean isChest(MinecraftClient client, BlockPos pos) {
+        return client != null
+                && client.world != null
+                && pos != null
+                && client.world.getBlockState(pos).getBlock() instanceof ChestBlock;
+    }
+
     public static ImmersiveCameraOrientation applyAirPriority(
             MinecraftClient client,
             BlockPos blockPos,
@@ -260,7 +315,27 @@ public final class ImmersiveOrientationResolver {
             case WEST -> blockPos.west();
         };
 
-        return !client.world.getBlockState(checkPos).isAir();
+        return !isOpenForAirPriority(client, checkPos);
+    }
+
+    private static boolean isOpenForAirPriority(
+            MinecraftClient client,
+            BlockPos pos
+    ) {
+        if (client == null || client.world == null || pos == null) {
+            return false;
+        }
+
+        var state = client.world.getBlockState(pos);
+
+        return switch (ImmersiveChestsConfigScreen.airPriorityMode) {
+            case AIR_ONLY -> state.isAir();
+
+            case NON_SOLID_BLOCKS ->
+                    state.isAir()
+                            || state.isReplaceable()
+                            || state.getCollisionShape(client.world, pos).isEmpty();
+        };
     }
 
     public static ImmersiveCameraOrientation nearestSideIgnoringBlocks(
@@ -343,7 +418,7 @@ public final class ImmersiveOrientationResolver {
         for (Direction direction : Direction.Type.HORIZONTAL) {
             BlockPos sidePos = blockPos.offset(direction);
 
-            if (!client.world.getBlockState(sidePos).isAir()) {
+            if (!isOpenForAirPriority(client, sidePos)) {
                 continue;
             }
 
@@ -370,8 +445,8 @@ public final class ImmersiveOrientationResolver {
             BlockPos blockPos,
             Vec3d playerCameraPos
     ) {
-        boolean topOpen = client.world.getBlockState(blockPos.up()).isAir();
-        boolean bottomOpen = client.world.getBlockState(blockPos.down()).isAir();
+        boolean topOpen = isOpenForAirPriority(client, blockPos.up());
+        boolean bottomOpen = isOpenForAirPriority(client, blockPos.down());
 
         if (topOpen && !bottomOpen) {
             return ImmersiveCameraOrientation.TOP;
@@ -400,7 +475,7 @@ public final class ImmersiveOrientationResolver {
         return client != null
                 && client.world != null
                 && pos != null
-                && !client.world.getBlockState(pos.up()).isAir();
+                && !isOpenForAirPriority(client, pos.up());
     }
 
     private static Direction getFacingOrNull(
