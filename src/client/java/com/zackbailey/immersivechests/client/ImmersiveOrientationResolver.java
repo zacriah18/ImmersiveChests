@@ -2,14 +2,24 @@ package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
-
+import net.minecraft.block.Block;
 import net.minecraft.block.BarrelBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ButtonBlock;
+import net.minecraft.block.ChainBlock;
 import net.minecraft.block.ChestBlock;
+import net.minecraft.block.HangingSignBlock;
+import net.minecraft.block.LeverBlock;
+import net.minecraft.block.SignBlock;
+import net.minecraft.block.TorchBlock;
+import net.minecraft.block.WallSignBlock;
+import net.minecraft.block.WallTorchBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.text.Text;
 
 public final class ImmersiveOrientationResolver {
 
@@ -331,11 +341,62 @@ public final class ImmersiveOrientationResolver {
         return switch (ImmersiveChestsConfigScreen.airPriorityMode) {
             case AIR_ONLY -> state.isAir();
 
-            case NON_SOLID_BLOCKS ->
-                    state.isAir()
-                            || state.isReplaceable()
-                            || state.getCollisionShape(client.world, pos).isEmpty();
+            case NON_SOLID_BLOCKS -> isCameraPassable(client, pos, state);
         };
+    }
+
+    private static boolean isCameraPassable(
+            MinecraftClient client,
+            BlockPos pos,
+            BlockState state
+    ) {
+        
+        if (client == null || client.world == null || pos == null || state == null) {
+            debugChat(client, "One or more parameters are null in isCameraPassable");
+            return false;
+        }
+        debugChat(client,
+                "AirPriority pos=" + pos
+                        + " block=" + state.getBlock()
+                        + " air=" + state.isAir()
+                        + " replaceable=" + state.isReplaceable()
+                        + " collisionEmpty=" + state.getCollisionShape(client.world, pos).isEmpty()
+        );
+        if (state.isAir()) {
+            return true;
+        }
+
+        if (state.isReplaceable()) {
+            return true;
+        }
+
+        if (state.getCollisionShape(client.world, pos).isEmpty()) {
+            return true;
+        }
+
+        Block block = state.getBlock();
+
+        return block instanceof TorchBlock
+                || block instanceof WallTorchBlock
+                || block instanceof SignBlock
+                || block instanceof WallSignBlock
+                || block instanceof HangingSignBlock
+                || block instanceof ButtonBlock
+                || block instanceof LeverBlock
+                || block instanceof ChainBlock;
+    }
+
+    private static void debugChat(MinecraftClient client, String message) {
+        if (!ImmersiveChestsConfigScreen.debugLogging
+                || client == null
+                || client.player == null) {
+            return;
+        }
+
+        client.player.sendMessage(
+                Text.literal("[ImmersiveChests] " + message),
+                false
+        );
     }
 
     public static ImmersiveCameraOrientation nearestSideIgnoringBlocks(
