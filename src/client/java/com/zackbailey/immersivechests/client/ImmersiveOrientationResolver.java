@@ -4,12 +4,21 @@ import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.BarrelBlock;
+import net.minecraft.world.level.block.ButtonBlock;
+import net.minecraft.world.level.block.ChainBlock;
 import net.minecraft.world.level.block.ChestBlock;
+import net.minecraft.world.level.block.HangingSignBlock;
+import net.minecraft.world.level.block.LeverBlock;
+import net.minecraft.world.level.block.SignBlock;
+import net.minecraft.world.level.block.TorchBlock;
+import net.minecraft.world.level.block.WallSignBlock;
+import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.block.state.BlockState;
 
 public final class ImmersiveOrientationResolver {
 
@@ -331,11 +340,35 @@ public final class ImmersiveOrientationResolver {
         return switch (ImmersiveChestsConfigScreen.airPriorityMode) {
             case AIR_ONLY -> state.isAir();
 
-            case NON_SOLID_BLOCKS ->
-                    state.isAir()
-                            || state.canBeReplaced()
-                            || state.getCollisionShape(client.level, pos).isEmpty();
+            case NON_SOLID_BLOCKS -> isCameraPassable(client, pos, state);
         };
+    }
+
+    private static boolean isCameraPassable(
+            Minecraft client,
+            BlockPos pos,
+            BlockState state
+    ) {
+        if (state.isAir()) {
+            return true;
+        }
+
+        if (state.canBeReplaced()) {
+            return true;
+        }
+
+        if (state.getCollisionShape(client.level, pos).isEmpty()) {
+            return true;
+        }
+
+        return state.getBlock() instanceof TorchBlock
+                || state.getBlock() instanceof WallTorchBlock
+                || state.getBlock() instanceof SignBlock
+                || state.getBlock() instanceof WallSignBlock
+                || state.getBlock() instanceof HangingSignBlock
+                || state.getBlock() instanceof ButtonBlock
+                || state.getBlock() instanceof LeverBlock
+                || state.getBlock() instanceof ChainBlock;
     }
 
     public static ImmersiveCameraOrientation nearestSideIgnoringBlocks(
