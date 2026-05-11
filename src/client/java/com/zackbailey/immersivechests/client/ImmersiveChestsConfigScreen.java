@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 import com.zackbailey.immersivechests.enums.ImmersiveYawMode;
+import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen.BlockSettings;
 import com.zackbailey.immersivechests.enums.ImmersiveAirPriorityMode;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -331,6 +332,16 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.AXIS);
 
+        public static final BlockSettings HOPPER = new BlockSettings(
+                0.0, 1.05, 0.0,
+                0.0, 0.0, 1.0,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.FIXED,
+                ImmersiveCameraOrientation.TOP,
+                ImmersiveYawMode.FACE
+        );
+
         public static Screen create(Screen parent) {
                 ConfigBuilder builder = ConfigBuilder.create()
                                 .setParentScreen(parent)
@@ -363,6 +374,7 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Chest Boat", CHEST_BOAT);
                 addBlockCategory(builder, entryBuilder, "Shulker Box", SHULKER_BOX);
                 addBlockCategory(builder, entryBuilder, "Command Block", COMMAND_BLOCK);
+                addBlockCategory(builder, entryBuilder, "Hopper", HOPPER);
 
                 return builder.build();
         }

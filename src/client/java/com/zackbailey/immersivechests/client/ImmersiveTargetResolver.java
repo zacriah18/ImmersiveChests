@@ -24,8 +24,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 public final class ImmersiveTargetResolver {
-
-    private static ImmersiveTargetContext lastResolvedContext;
+    private static ImmersiveTargetContext lastEntityContext;
 
     private ImmersiveTargetResolver() {}
 
@@ -39,38 +38,58 @@ public final class ImmersiveTargetResolver {
             return null;
         }
 
-        if (!isValidImmersiveScreen(screen)) {
+        ImmersiveTargetProfile screenProfile = screenProfile(screen);
+
+        if (screenProfile == null) {
             return null;
         }
 
-        ImmersiveTargetContext context = findTargetContext(client, screen);
+        ImmersiveTargetContext context = findTargetContext(
+                client,
+                screen,
+                screenProfile
+        );
 
         if (context == null || context.profile() == null || context.currentCenter() == null) {
             return null;
         }
 
-        lastResolvedContext = context;
+        if (context.entity() != null) {
+            lastEntityContext = context;
+        }
 
         return resolveContext(client, context, playerCameraPos, playerYaw);
     }
 
-    private static boolean isValidImmersiveScreen(Screen screen) {
-        return isKnownImmersiveScreen(screen)
-                || isCompatibleHandledScreen(screen);
-    }
-
-    private static boolean isKnownImmersiveScreen(Screen screen) {
-        return screen instanceof LecternScreen
-                || screen instanceof CommandBlockEditScreen;
-    }
-
-    private static boolean isCompatibleHandledScreen(Screen screen) {
-        if (!(screen instanceof AbstractContainerScreen<?>)) {
-            return false;
+    private static ImmersiveTargetContext findTargetContext(
+            Minecraft client,
+            Screen screen,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        ImmersiveTargetContext vehicleContext = findVehicleTarget(client, screen);
+        if (vehicleContext != null) {
+            return vehicleContext;
         }
 
-        return !(screen instanceof InventoryScreen)
-                && !(screen instanceof CreativeModeInventoryScreen);
+        ImmersiveTargetContext entityContext = findEntityTarget(client, screenProfile);
+        if (entityContext != null) {
+            return entityContext;
+        }
+
+        ImmersiveTargetContext blockContext = findBlockTarget(client, screenProfile);
+        if (blockContext != null) {
+            return blockContext;
+        }
+
+        ImmersiveTargetContext screenAnchoredContext = findScreenAnchoredTarget(
+                client,
+                screenProfile
+        );
+        if (screenAnchoredContext != null) {
+            return screenAnchoredContext;
+        }
+
+        return findSafeEntityFallback(screenProfile);
     }
 
     private static ImmersiveResolvedTarget resolveContext(
@@ -132,279 +151,11 @@ public final class ImmersiveTargetResolver {
         );
     }
 
-    private static ImmersiveTargetContext findTargetContext(
-            Minecraft client,
-            Screen screen
-    ) {
-        ImmersiveTargetContext blockContext = findBlockTarget(client);
-        if (blockContext != null) {
-            return blockContext;
-        }
-
-        ImmersiveTargetContext entityContext = findEntityTarget(client);
-        if (entityContext != null) {
-            return entityContext;
-        }
-
-        ImmersiveTargetContext vehicleContext = findVehicleTarget(client, screen);
-        if (vehicleContext != null) {
-            return vehicleContext;
-        }
-
-        return findFallbackTarget(screen);
-    }
-
-    private static ImmersiveTargetContext findVehicleTarget(
-            Minecraft client,
-            Screen screen
-    ) {
-        if (!(screen instanceof ContainerScreen)) {
-            return null;
-        }
-
-        if (client.player == null || !client.player.isPassenger()) {
-            return null;
-        }
-
-        if (!(client.player.getVehicle() instanceof ChestBoat chestBoat)) {
-            return null;
-        }
-
-        return entityTargetContext(
-                chestBoat,
-                ImmersiveTargetType.CHEST_BOAT,
-                ImmersiveChestsConfigScreen.CHEST_BOAT
-        );
-    }
-
-    private static ImmersiveTargetContext findEntityTarget(Minecraft client) {
-        if (!(client.hitResult instanceof EntityHitResult hit)) {
-            return null;
-        }
-
-        Entity entity = hit.getEntity();
-
-        if (entity instanceof ChestBoat) {
-            return entityTargetContext(
-                    entity,
-                    ImmersiveTargetType.CHEST_BOAT,
-                    ImmersiveChestsConfigScreen.CHEST_BOAT
-            );
-        }
-
-        if (entity instanceof MinecartChest) {
-            return entityTargetContext(
-                    entity,
-                    ImmersiveTargetType.CHEST_MINECART,
-                    ImmersiveChestsConfigScreen.CHEST_MINECART
-            );
-        }
-
-        return null;
-    }
-
-    private static ImmersiveTargetContext entityTargetContext(
-            Entity entity,
-            ImmersiveTargetType type,
-            ImmersiveChestsConfigScreen.BlockSettings settings
-    ) {
-        Vec3 center = new Vec3(
-                entity.getX(),
-                entity.getY(),
-                entity.getZ()
-        );
-
-        return new ImmersiveTargetContext(
-                profile(type, settings),
-                null,
-                center,
-                entity
-        );
-    }
-
-    private static ImmersiveTargetContext findBlockTarget(Minecraft client) {
-        if (!(client.hitResult instanceof BlockHitResult hit) || client.level == null) {
-            return null;
-        }
-
-        BlockPos pos = hit.getBlockPos();
-
-        ImmersiveTargetContext directTarget = blockTargetAt(client, pos);
-        if (directTarget != null) {
-            return directTarget;
-        }
-
-        return targetBehindDecorativeBlock(client, pos);
-    }
-
-    private static ImmersiveTargetContext blockTargetAt(
-            Minecraft client,
-            BlockPos pos
-    ) {
-        if (client.level == null || pos == null) {
-            return null;
-        }
-
-        BlockState state = client.level.getBlockState(pos);
-        Vec3 center = Vec3.atCenterOf(pos);
-
-        if (state.getBlock() instanceof BarrelBlock) {
-            return new ImmersiveTargetContext(
-                    profile(ImmersiveTargetType.BARREL, ImmersiveChestsConfigScreen.BARREL),
-                    pos,
-                    center,
-                    null
-            );
-        }
-
-        if (state.getBlock() instanceof ChestBlock) {
-            return chestTargetContext(client, pos, center);
-        }
-
-        return null;
-    }
-
-    private static ImmersiveTargetContext targetBehindDecorativeBlock(
-            Minecraft client,
-            BlockPos pos
-    ) {
-        if (client.level == null || pos == null) {
-            return null;
-        }
-
-        BlockState state = client.level.getBlockState(pos);
-
-        if (!isDecorativeProxyBlock(state)) {
-            return null;
-        }
-
-        Direction facing = decorativeFacing(state);
-
-        if (facing != null) {
-            ImmersiveTargetContext target =
-                    blockTargetAt(client, pos.relative(facing.getOpposite()));
-
-            if (target != null) {
-                return target;
-            }
-        }
-
-        for (Direction direction : Direction.values()) {
-            ImmersiveTargetContext target =
-                    blockTargetAt(client, pos.relative(direction));
-
-            if (target != null) {
-                return target;
-            }
-        }
-
-        return null;
-    }
-
-    private static boolean isDecorativeProxyBlock(BlockState state) {
-        if (state == null) {
-            return false;
-        }
-
-        String blockId = BuiltInRegistries.BLOCK
-                .getKey(state.getBlock())
-                .toString();
-
-        return blockId.contains("item_frame")
-                || blockId.contains("frame")
-                || blockId.contains("display");
-    }
-
-    private static Direction decorativeFacing(BlockState state) {
-        if (state == null) {
-            return null;
-        }
-
-        if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            return state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        }
-
-        if (state.hasProperty(BlockStateProperties.FACING)) {
-            return state.getValue(BlockStateProperties.FACING);
-        }
-
-        return null;
-    }
-
-    private static ImmersiveTargetContext chestTargetContext(
-            Minecraft client,
-            BlockPos pos,
-            Vec3 center
-    ) {
-        BlockState state = client.level.getBlockState(pos);
-        ChestType chestType = state.getValue(ChestBlock.TYPE);
-
-        if (chestType == ChestType.LEFT) {
-            return new ImmersiveTargetContext(
-                    profile(ImmersiveTargetType.DOUBLE_CHEST_LEFT, ImmersiveChestsConfigScreen.DOUBLE_CHEST_LEFT),
-                    pos,
-                    center,
-                    null
-            );
-        }
-
-        if (chestType == ChestType.RIGHT) {
-            return new ImmersiveTargetContext(
-                    profile(ImmersiveTargetType.DOUBLE_CHEST_RIGHT, ImmersiveChestsConfigScreen.DOUBLE_CHEST_RIGHT),
-                    pos,
-                    center,
-                    null
-            );
-        }
-
-        return new ImmersiveTargetContext(
-                profile(ImmersiveTargetType.CHEST, ImmersiveChestsConfigScreen.CHEST),
-                pos,
-                center,
-                null
-        );
-    }
-
-    private static ImmersiveTargetContext findFallbackTarget(Screen screen) {
-        if (lastResolvedContext == null || lastResolvedContext.profile() == null) {
-            return null;
-        }
-
-        if (!isLastContextCompatibleWithScreen(lastResolvedContext, screen)) {
-            return null;
-        }
-
-        return lastResolvedContext;
-    }
-
-    private static boolean isLastContextCompatibleWithScreen(
-            ImmersiveTargetContext context,
-            Screen screen
-    ) {
-        ImmersiveTargetType type = context.profile().type();
-
-        if (screen instanceof ContainerScreen) {
-            return type == ImmersiveTargetType.CHEST
-                    || type == ImmersiveTargetType.DOUBLE_CHEST_LEFT
-                    || type == ImmersiveTargetType.DOUBLE_CHEST_RIGHT
-                    || type == ImmersiveTargetType.TRAPPED_CHEST
-                    || type == ImmersiveTargetType.COPPER_CHEST
-                    || type == ImmersiveTargetType.ENDER_CHEST
-                    || type == ImmersiveTargetType.CHEST_BOAT
-                    || type == ImmersiveTargetType.CHEST_MINECART;
-        }
-
-        ImmersiveTargetProfile fallbackProfile = fallbackProfile(screen);
-
-        return fallbackProfile != null
-                && fallbackProfile.type() == type;
-    }
-
-    private static ImmersiveTargetProfile fallbackProfile(Screen screen) {
-        if (screen instanceof ContainerScreen) {
-            return profile(ImmersiveTargetType.CHEST, ImmersiveChestsConfigScreen.CHEST);
-        }
-
+    /**
+     * Screen decides which profiles are immersive.
+     * This keeps unknown HandledScreens from accidentally inheriting old targets.
+     */
+    private static ImmersiveTargetProfile screenProfile(Screen screen) {
         if (screen instanceof ShulkerBoxScreen) {
             return profile(ImmersiveTargetType.SHULKER_BOX, ImmersiveChestsConfigScreen.SHULKER_BOX);
         }
@@ -473,7 +224,496 @@ public final class ImmersiveTargetResolver {
             return profile(ImmersiveTargetType.COMMAND_BLOCK, ImmersiveChestsConfigScreen.COMMAND_BLOCK);
         }
 
+        if (screen instanceof ContainerScreen) {
+            return profile(ImmersiveTargetType.CHEST, ImmersiveChestsConfigScreen.CHEST);
+        }
+
+        if (screen instanceof HopperScreen) {
+            return profile(ImmersiveTargetType.HOPPER, ImmersiveChestsConfigScreen.HOPPER);
+        }
+
         return null;
+    }
+
+    private static ImmersiveTargetContext findVehicleTarget(
+            Minecraft client,
+            Screen screen
+    ) {
+        if (!(screen instanceof ContainerScreen)) {
+            return null;
+        }
+
+        if (client.player == null || !client.player.isPassenger()) {
+            return null;
+        }
+
+        if (!(client.player.getVehicle() instanceof ChestBoat chestBoat)) {
+            return null;
+        }
+
+        return entityTargetContext(
+                chestBoat,
+                ImmersiveTargetType.CHEST_BOAT,
+                ImmersiveChestsConfigScreen.CHEST_BOAT
+        );
+    }
+
+    private static ImmersiveTargetContext findEntityTarget(
+            Minecraft client,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (!(client.hitResult instanceof EntityHitResult hit)) {
+            return null;
+        }
+
+        Entity entity = hit.getEntity();
+
+        if (entity instanceof ChestBoat) {
+            return entityTargetContext(
+                    entity,
+                    ImmersiveTargetType.CHEST_BOAT,
+                    ImmersiveChestsConfigScreen.CHEST_BOAT
+            );
+        }
+
+        if (entity instanceof MinecartChest) {
+            return entityTargetContext(
+                    entity,
+                    ImmersiveTargetType.CHEST_MINECART,
+                    ImmersiveChestsConfigScreen.CHEST_MINECART
+            );
+        }
+
+        ImmersiveTargetContext decorativeContext = targetBehindDecorativeEntity(
+                client,
+                entity,
+                screenProfile
+        );
+
+        if (decorativeContext != null) {
+            return decorativeContext;
+        }
+
+        return null;
+    }
+
+    private static ImmersiveTargetContext entityTargetContext(
+            Entity entity,
+            ImmersiveTargetType type,
+            ImmersiveChestsConfigScreen.BlockSettings settings
+    ) {
+        Vec3 center = new Vec3(
+                entity.getX(),
+                entity.getY(),
+                entity.getZ()
+        );
+
+        return new ImmersiveTargetContext(
+                profile(type, settings),
+                null,
+                center,
+                entity
+        );
+    }
+
+    private static ImmersiveTargetContext findBlockTarget(
+            Minecraft client,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (!(client.hitResult instanceof BlockHitResult hit) || client.level == null) {
+            return null;
+        }
+
+        BlockPos pos = hit.getBlockPos();
+
+        ImmersiveTargetContext directTarget = blockTargetAt(client, pos);
+        if (isCompatibleWithScreenProfile(directTarget, screenProfile)) {
+            return directTarget;
+        }
+
+        ImmersiveTargetContext decorativeTarget = targetBehindDecorativeBlock(
+                client,
+                pos,
+                screenProfile
+        );
+        if (decorativeTarget != null) {
+            return decorativeTarget;
+        }
+
+        ImmersiveTargetContext nearbyTarget = nearbyTargetForScreen(
+                client,
+                pos,
+                screenProfile
+        );
+        if (nearbyTarget != null) {
+            return nearbyTarget;
+        }
+
+        return null;
+    }
+
+    /**
+     * Last safe repair path: the screen supplies the profile, and the crosshair supplies
+     * only a block position. This is intentionally not allowed for ContainerScreen,
+     * because ContainerScreen needs world/block detection to distinguish chest,
+     * Ender Chest, shulker-like containers, boats, minecarts, etc.
+     */
+    private static ImmersiveTargetContext findScreenAnchoredTarget(
+            Minecraft client,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (client == null
+                || client.level == null
+                || screenProfile == null
+                || isGenericContainerFamily(screenProfile.type())) {
+            return null;
+        }
+
+        if (!(client.hitResult instanceof BlockHitResult hit)) {
+            return null;
+        }
+
+        BlockPos pos = hit.getBlockPos();
+
+        return new ImmersiveTargetContext(
+                screenProfile,
+                pos,
+                Vec3.atCenterOf(pos),
+                null
+        );
+    }
+
+    private static ImmersiveTargetContext blockTargetAt(
+            Minecraft client,
+            BlockPos pos
+    ) {
+        if (client == null || client.level == null || pos == null) {
+            return null;
+        }
+
+        BlockState state = client.level.getBlockState(pos);
+        Vec3 center = Vec3.atCenterOf(pos);
+
+        if (state.getBlock() instanceof BarrelBlock) {
+            return new ImmersiveTargetContext(
+                    profile(ImmersiveTargetType.BARREL, ImmersiveChestsConfigScreen.BARREL),
+                    pos,
+                    center,
+                    null
+            );
+        }
+
+        
+
+        if (state.getBlock() instanceof ChestBlock) {
+            return chestTargetContext(client, pos, center);
+        }
+
+        String blockId = blockId(state);
+
+        if (blockId.equals("minecraft:ender_chest")) {
+            return new ImmersiveTargetContext(
+                    profile(ImmersiveTargetType.ENDER_CHEST, ImmersiveChestsConfigScreen.CHEST),
+                    pos,
+                    center,
+                    null
+            );
+        }
+
+        if (blockId.endsWith("shulker_box") || blockId.contains("shulker_box")) {
+            return new ImmersiveTargetContext(
+                    profile(ImmersiveTargetType.SHULKER_BOX, ImmersiveChestsConfigScreen.SHULKER_BOX),
+                    pos,
+                    center,
+                    null
+            );
+        }
+
+        if (blockId.equals("minecraft:furnace")) {
+            return blockContext(ImmersiveTargetType.FURNACE, ImmersiveChestsConfigScreen.FURNACE, pos, center);
+        }
+
+        if (blockId.equals("minecraft:smoker")) {
+            return blockContext(ImmersiveTargetType.SMOKER, ImmersiveChestsConfigScreen.SMOKER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:blast_furnace")) {
+            return blockContext(ImmersiveTargetType.BLAST_FURNACE, ImmersiveChestsConfigScreen.BLAST_FURNACE, pos, center);
+        }
+
+        if (blockId.equals("minecraft:crafting_table")) {
+            return blockContext(ImmersiveTargetType.CRAFTING_TABLE, ImmersiveChestsConfigScreen.CRAFTING_TABLE, pos, center);
+        }
+
+        if (blockId.equals("minecraft:crafter")) {
+            return blockContext(ImmersiveTargetType.AUTO_CRAFTER, ImmersiveChestsConfigScreen.AUTO_CRAFTER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:stonecutter")) {
+            return blockContext(ImmersiveTargetType.STONECUTTER, ImmersiveChestsConfigScreen.STONECUTTER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:cartography_table")) {
+            return blockContext(ImmersiveTargetType.CARTOGRAPHY_TABLE, ImmersiveChestsConfigScreen.CARTOGRAPHY_TABLE, pos, center);
+        }
+
+        if (blockId.equals("minecraft:smithing_table")) {
+            return blockContext(ImmersiveTargetType.SMITHING_TABLE, ImmersiveChestsConfigScreen.SMITHING_TABLE, pos, center);
+        }
+
+        if (blockId.equals("minecraft:loom")) {
+            return blockContext(ImmersiveTargetType.LOOM, ImmersiveChestsConfigScreen.LOOM, pos, center);
+        }
+
+        if (blockId.equals("minecraft:grindstone")) {
+            return blockContext(ImmersiveTargetType.GRINDSTONE, ImmersiveChestsConfigScreen.GRINDSTONE, pos, center);
+        }
+
+        if (blockId.endsWith("anvil") || blockId.equals("minecraft:chipped_anvil") || blockId.equals("minecraft:damaged_anvil")) {
+            return blockContext(ImmersiveTargetType.ANVIL, ImmersiveChestsConfigScreen.ANVIL, pos, center);
+        }
+
+        if (blockId.equals("minecraft:enchanting_table")) {
+            return blockContext(ImmersiveTargetType.ENCHANTING_TABLE, ImmersiveChestsConfigScreen.ENCHANTING_TABLE, pos, center);
+        }
+
+        if (blockId.equals("minecraft:brewing_stand")) {
+            return blockContext(ImmersiveTargetType.BREWING_STAND, ImmersiveChestsConfigScreen.BREWING_STAND, pos, center);
+        }
+
+        if (blockId.equals("minecraft:beacon")) {
+            return blockContext(ImmersiveTargetType.BEACON, ImmersiveChestsConfigScreen.BEACON, pos, center);
+        }
+
+        if (blockId.equals("minecraft:lectern")) {
+            return blockContext(ImmersiveTargetType.LECTERN_BOOK, ImmersiveChestsConfigScreen.LECTERN, pos, center);
+        }
+
+        if (blockId.endsWith("command_block")) {
+            return blockContext(ImmersiveTargetType.COMMAND_BLOCK, ImmersiveChestsConfigScreen.COMMAND_BLOCK, pos, center);
+        }
+
+        return null;
+    }
+
+    private static ImmersiveTargetContext blockContext(
+            ImmersiveTargetType type,
+            ImmersiveChestsConfigScreen.BlockSettings settings,
+            BlockPos pos,
+            Vec3 center
+    ) {
+        return new ImmersiveTargetContext(
+                profile(type, settings),
+                pos,
+                center,
+                null
+        );
+    }
+
+    private static ImmersiveTargetContext chestTargetContext(
+            Minecraft client,
+            BlockPos pos,
+            Vec3 center
+    ) {
+        BlockState state = client.level.getBlockState(pos);
+        ChestType chestType = state.getValue(ChestBlock.TYPE);
+
+        if (chestType == ChestType.LEFT) {
+            return new ImmersiveTargetContext(
+                    profile(ImmersiveTargetType.DOUBLE_CHEST_LEFT, ImmersiveChestsConfigScreen.DOUBLE_CHEST_LEFT),
+                    pos,
+                    center,
+                    null
+            );
+        }
+
+        if (chestType == ChestType.RIGHT) {
+            return new ImmersiveTargetContext(
+                    profile(ImmersiveTargetType.DOUBLE_CHEST_RIGHT, ImmersiveChestsConfigScreen.DOUBLE_CHEST_RIGHT),
+                    pos,
+                    center,
+                    null
+            );
+        }
+
+        return new ImmersiveTargetContext(
+                profile(ImmersiveTargetType.CHEST, ImmersiveChestsConfigScreen.CHEST),
+                pos,
+                center,
+                null
+        );
+    }
+
+    private static ImmersiveTargetContext targetBehindDecorativeBlock(
+            Minecraft client,
+            BlockPos pos,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (client.level == null || pos == null) {
+            return null;
+        }
+
+        BlockState state = client.level.getBlockState(pos);
+
+        if (!isDecorativeProxyBlock(state)) {
+            return null;
+        }
+
+        Direction facing = decorativeFacing(state);
+
+        if (facing != null) {
+            ImmersiveTargetContext target = blockTargetAt(client, pos.relative(facing.getOpposite()));
+
+            if (isCompatibleWithScreenProfile(target, screenProfile)) {
+                return target;
+            }
+        }
+
+        return nearbyTargetForScreen(client, pos, screenProfile);
+    }
+
+    private static ImmersiveTargetContext targetBehindDecorativeEntity(
+            Minecraft client,
+            Entity entity,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (client == null || client.level == null || entity == null) {
+            return null;
+        }
+
+        String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
+
+        if (!entityId.contains("item_frame")
+                && !entityId.contains("painting")
+                && !entityId.contains("display")) {
+            return null;
+        }
+
+        return nearbyTargetForScreen(client, entity.blockPosition(), screenProfile);
+    }
+
+    private static ImmersiveTargetContext nearbyTargetForScreen(
+            Minecraft client,
+            BlockPos origin,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (client == null || client.level == null || origin == null || screenProfile == null) {
+            return null;
+        }
+
+        ImmersiveTargetContext originTarget = blockTargetAt(client, origin);
+        if (isCompatibleWithScreenProfile(originTarget, screenProfile)) {
+            return originTarget;
+        }
+
+        for (Direction direction : Direction.values()) {
+            ImmersiveTargetContext target = blockTargetAt(client, origin.relative(direction));
+
+            if (isCompatibleWithScreenProfile(target, screenProfile)) {
+                return target;
+            }
+        }
+
+        for (Direction first : Direction.Plane.HORIZONTAL) {
+            for (Direction second : Direction.Plane.HORIZONTAL) {
+                ImmersiveTargetContext target = blockTargetAt(client, origin.relative(first).relative(second));
+
+                if (isCompatibleWithScreenProfile(target, screenProfile)) {
+                    return target;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static boolean isCompatibleWithScreenProfile(
+            ImmersiveTargetContext context,
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (context == null || context.profile() == null || screenProfile == null) {
+            return false;
+        }
+
+        ImmersiveTargetType found = context.profile().type();
+        ImmersiveTargetType expected = screenProfile.type();
+
+        if (found == expected) {
+            return true;
+        }
+
+        if (isGenericContainerFamily(expected)) {
+            return isGenericContainerFamily(found);
+        }
+
+        if (expected == ImmersiveTargetType.FURNACE) {
+            return found == ImmersiveTargetType.FURNACE;
+        }
+
+        return false;
+    }
+
+    private static boolean isGenericContainerFamily(ImmersiveTargetType type) {
+        return type == ImmersiveTargetType.CHEST
+                || type == ImmersiveTargetType.DOUBLE_CHEST_LEFT
+                || type == ImmersiveTargetType.DOUBLE_CHEST_RIGHT
+                || type == ImmersiveTargetType.TRAPPED_CHEST
+                || type == ImmersiveTargetType.COPPER_CHEST
+                || type == ImmersiveTargetType.ENDER_CHEST
+                || type == ImmersiveTargetType.BARREL
+                || type == ImmersiveTargetType.SHULKER_BOX
+                || type == ImmersiveTargetType.CHEST_BOAT
+                || type == ImmersiveTargetType.CHEST_MINECART;
+    }
+
+    private static ImmersiveTargetContext findSafeEntityFallback(
+            ImmersiveTargetProfile screenProfile
+    ) {
+        if (lastEntityContext == null
+                || lastEntityContext.profile() == null
+                || screenProfile == null
+                || lastEntityContext.entity() == null) {
+            return null;
+        }
+
+        if (!isCompatibleWithScreenProfile(lastEntityContext, screenProfile)) {
+            return null;
+        }
+
+        return lastEntityContext;
+    }
+
+    private static boolean isDecorativeProxyBlock(BlockState state) {
+        if (state == null) {
+            return false;
+        }
+
+        String blockId = blockId(state);
+
+        return blockId.contains("item_frame")
+                || blockId.contains("frame")
+                || blockId.contains("painting")
+                || blockId.contains("display");
+    }
+
+    private static Direction decorativeFacing(BlockState state) {
+        if (state == null) {
+            return null;
+        }
+
+        if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        }
+
+        if (state.hasProperty(BlockStateProperties.FACING)) {
+            return state.getValue(BlockStateProperties.FACING);
+        }
+
+        return null;
+    }
+
+    private static String blockId(BlockState state) {
+        return BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
     }
 
     private static ImmersiveTargetProfile profile(
