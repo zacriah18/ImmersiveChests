@@ -196,8 +196,7 @@ public final class ImmersiveOrientationResolver {
                 || blockId.equals("minecraft:blast_furnace")
                 || blockId.equals("minecraft:furnace")
                 || blockId.equals("minecraft:dispenser")
-                || blockId.equals("minecraft:dropper")
-                || blockId.equals("minecraft:hopper")) {
+                || blockId.equals("minecraft:dropper")) {
             return oppositeAxis(orientation);
         }
 
