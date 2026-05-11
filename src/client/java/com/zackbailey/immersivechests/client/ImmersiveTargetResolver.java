@@ -15,6 +15,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.boat.ChestBoat;
 import net.minecraft.world.entity.vehicle.minecart.MinecartChest;
+import net.minecraft.world.entity.vehicle.minecart.MinecartHopper;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -232,6 +233,10 @@ public final class ImmersiveTargetResolver {
             return profile(ImmersiveTargetType.HOPPER, ImmersiveChestsConfigScreen.HOPPER);
         }
 
+        if (screen instanceof DispenserScreen) {
+            return profile(ImmersiveTargetType.DISPENSER, ImmersiveChestsConfigScreen.DISPENSER);
+        }
+
         return null;
     }
 
@@ -281,6 +286,14 @@ public final class ImmersiveTargetResolver {
                     entity,
                     ImmersiveTargetType.CHEST_MINECART,
                     ImmersiveChestsConfigScreen.CHEST_MINECART
+            );
+        }
+
+        if (entity instanceof MinecartHopper) {
+            return entityTargetContext(
+                    entity,
+                    ImmersiveTargetType.HOPPER_MINECART,
+                    ImmersiveChestsConfigScreen.HOPPER_MINECART
             );
         }
 
@@ -493,6 +506,18 @@ public final class ImmersiveTargetResolver {
             return blockContext(ImmersiveTargetType.COMMAND_BLOCK, ImmersiveChestsConfigScreen.COMMAND_BLOCK, pos, center);
         }
 
+        if (blockId.equals("minecraft:hopper")) {
+            return blockContext(ImmersiveTargetType.HOPPER, ImmersiveChestsConfigScreen.HOPPER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:dispenser")) {
+            return blockContext(ImmersiveTargetType.DISPENSER, ImmersiveChestsConfigScreen.DISPENSER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:dropper")) {
+            return blockContext(ImmersiveTargetType.DROPPER, ImmersiveChestsConfigScreen.DROPPER, pos, center);
+        }
+
         return null;
     }
 
@@ -627,6 +652,11 @@ public final class ImmersiveTargetResolver {
         return null;
     }
 
+    private static boolean isDispenserDropperFamily(ImmersiveTargetType type) {
+        return type == ImmersiveTargetType.DISPENSER
+                || type == ImmersiveTargetType.DROPPER;
+    }
+
     private static boolean isCompatibleWithScreenProfile(
             ImmersiveTargetContext context,
             ImmersiveTargetProfile screenProfile
@@ -640,6 +670,14 @@ public final class ImmersiveTargetResolver {
 
         if (found == expected) {
             return true;
+        }
+
+        if (isGenericContainerFamily(expected)) {
+            return isGenericContainerFamily(found);
+        }
+
+        if (isDispenserDropperFamily(expected)) {
+            return isDispenserDropperFamily(found);
         }
 
         if (isGenericContainerFamily(expected)) {
@@ -663,7 +701,11 @@ public final class ImmersiveTargetResolver {
                 || type == ImmersiveTargetType.BARREL
                 || type == ImmersiveTargetType.SHULKER_BOX
                 || type == ImmersiveTargetType.CHEST_BOAT
-                || type == ImmersiveTargetType.CHEST_MINECART;
+                || type == ImmersiveTargetType.CHEST_MINECART
+                || type == ImmersiveTargetType.HOPPER
+                || type == ImmersiveTargetType.HOPPER_MINECART
+                || type == ImmersiveTargetType.DISPENSER
+                || type == ImmersiveTargetType.DROPPER;
     }
 
     private static ImmersiveTargetContext findSafeEntityFallback(

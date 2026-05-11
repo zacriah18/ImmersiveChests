@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 import com.zackbailey.immersivechests.enums.ImmersiveYawMode;
-import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen.BlockSettings;
 import com.zackbailey.immersivechests.enums.ImmersiveAirPriorityMode;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -337,8 +336,38 @@ public class ImmersiveChestsConfigScreen {
                 0.0, 0.0, 1.0,
                 0.0,
                 false,
+                ImmersiveCameraOrientationMode.BLOCK_FACE,
+                ImmersiveCameraOrientation.TOP,
+                ImmersiveYawMode.FACE
+        );
+
+        public static final BlockSettings HOPPER_MINECART = new BlockSettings(
+                0.0, 1.35, 0.0,
+                0.0, 0.0, 1.0,
+                0.0,
+                false,
                 ImmersiveCameraOrientationMode.FIXED,
                 ImmersiveCameraOrientation.TOP,
+                ImmersiveYawMode.FACE
+        );
+
+        public static final BlockSettings DISPENSER = new BlockSettings(
+                0.0, 1.25, 0.0,
+                0.0, 0.0, 1.25,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.BLOCK_FACE,
+                ImmersiveCameraOrientation.NORTH,
+                ImmersiveYawMode.FACE
+        );
+
+        public static final BlockSettings DROPPER = new BlockSettings(
+                0.0, 1.25, 0.0,
+                0.0, 0.0, 1.25,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.BLOCK_FACE,
+                ImmersiveCameraOrientation.NORTH,
                 ImmersiveYawMode.FACE
         );
 
@@ -375,6 +404,9 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Shulker Box", SHULKER_BOX);
                 addBlockCategory(builder, entryBuilder, "Command Block", COMMAND_BLOCK);
                 addBlockCategory(builder, entryBuilder, "Hopper", HOPPER);
+                addBlockCategory(builder, entryBuilder, "Hopper Minecart", HOPPER_MINECART);
+                addBlockCategory(builder, entryBuilder, "Dispenser", DISPENSER);
+                addBlockCategory(builder, entryBuilder, "Dropper", DROPPER);
 
                 return builder.build();
         }

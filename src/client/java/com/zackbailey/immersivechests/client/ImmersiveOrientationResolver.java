@@ -106,7 +106,7 @@ public final class ImmersiveOrientationResolver {
             );
         }
 
-        resolvedOrientation = applySmokerBlastFurnaceHorizontalFlip(
+        resolvedOrientation = applyblockOrientationFlip(
                 client,
                 blockPos,
                 resolvedOrientation
@@ -174,7 +174,7 @@ public final class ImmersiveOrientationResolver {
         };
     }
 
-    private static ImmersiveCameraOrientation applySmokerBlastFurnaceHorizontalFlip(
+    private static ImmersiveCameraOrientation applyblockOrientationFlip(
             Minecraft client,
             BlockPos blockPos,
             ImmersiveCameraOrientation orientation
@@ -194,7 +194,10 @@ public final class ImmersiveOrientationResolver {
 
         if (blockId.equals("minecraft:smoker")
                 || blockId.equals("minecraft:blast_furnace")
-                || blockId.equals("minecraft:furnace")) {
+                || blockId.equals("minecraft:furnace")
+                || blockId.equals("minecraft:dispenser")
+                || blockId.equals("minecraft:dropper")
+                || blockId.equals("minecraft:hopper")) {
             return oppositeAxis(orientation);
         }
 
