@@ -32,4 +32,5 @@ public enum ImmersiveTargetType {
     HOPPER_MINECART,
     DISPENSER,
     DROPPER,
+    MODDED_CONTAINER;
 }

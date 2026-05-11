@@ -24,6 +24,7 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.text.Text;
 
 public final class ImmersiveTargetResolver {
 
@@ -47,6 +48,12 @@ public final class ImmersiveTargetResolver {
         }
 
         ImmersiveTargetProfile screenProfile = screenProfile(screen);
+
+
+        debugChat(client,
+        "screen=" + screen.getClass().getName()
+        + " profile=" + (screenProfile == null ? "null" : screenProfile.type()));
+
 
         if (screenProfile == null) {
             return null;
@@ -244,6 +251,14 @@ public final class ImmersiveTargetResolver {
             return profile(ImmersiveTargetType.CHEST, ImmersiveChestsConfigScreen.CHEST);
         }
 
+        if (screen instanceof HandledScreen<?>
+                && !(screen instanceof InventoryScreen)
+                && !(screen instanceof CreativeInventoryScreen)) {
+            return profile(
+                    ImmersiveTargetType.MODDED_CONTAINER,
+                    ImmersiveChestsConfigScreen.MODDED_CONTAINER
+            );
+        }
         return null;
     }
 
@@ -358,6 +373,15 @@ public final class ImmersiveTargetResolver {
         );
         if (decorativeTarget != null) {
             return decorativeTarget;
+        }
+
+        if (screenProfile.type() == ImmersiveTargetType.MODDED_CONTAINER) {
+            ImmersiveTargetContext directModdedTarget =
+                    moddedContainerTargetAt(client, pos);
+
+            if (directModdedTarget != null) {
+                return directModdedTarget;
+            }
         }
 
         ImmersiveTargetContext nearbyTarget = nearbyTargetForScreen(
@@ -526,6 +550,33 @@ public final class ImmersiveTargetResolver {
         return null;
     }
 
+    private static ImmersiveTargetContext moddedContainerTargetAt(
+            MinecraftClient client,
+            BlockPos pos
+    ) {
+        if (client == null || client.world == null || pos == null) {
+            return null;
+        }
+
+        if (client.world.getBlockEntity(pos) == null) {
+            return null;
+        }
+
+        BlockState state = client.world.getBlockState(pos);
+
+        debugChat(client,
+                "modded check pos=" + pos
+                + " block=" + blockId(state)
+                + " blockEntity=" + client.world.getBlockEntity(pos));
+
+        return blockContext(
+                ImmersiveTargetType.MODDED_CONTAINER,
+                ImmersiveChestsConfigScreen.MODDED_CONTAINER,
+                pos,
+                Vec3d.ofCenter(pos)
+        );
+    }
+
     private static ImmersiveTargetContext blockContext(
             ImmersiveTargetType type,
             ImmersiveChestsConfigScreen.BlockSettings settings,
@@ -636,8 +687,24 @@ public final class ImmersiveTargetResolver {
             return originTarget;
         }
 
+        if (screenProfile.type() == ImmersiveTargetType.MODDED_CONTAINER) {
+            ImmersiveTargetContext originModdedTarget =
+                    moddedContainerTargetAt(client, origin);
+
+            if (originModdedTarget != null) {
+                return originModdedTarget;
+            }
+
+            // Important:
+            // Do not scan adjacent blocks for MODDED_CONTAINER by default.
+            // Adjacent inventories/fireplaces/stoves can steal the camera anchor.
+            return null;
+        }
+
         for (Direction direction : Direction.values()) {
-            ImmersiveTargetContext target = blockTargetAt(client, origin.offset(direction));
+            BlockPos nearbyPos = origin.offset(direction);
+
+            ImmersiveTargetContext target = blockTargetAt(client, nearbyPos);
 
             if (isCompatibleWithScreenProfile(target, screenProfile)) {
                 return target;
@@ -646,7 +713,9 @@ public final class ImmersiveTargetResolver {
 
         for (Direction first : Direction.Type.HORIZONTAL) {
             for (Direction second : Direction.Type.HORIZONTAL) {
-                ImmersiveTargetContext target = blockTargetAt(client, origin.offset(first).offset(second));
+                BlockPos nearbyPos = origin.offset(first).offset(second);
+
+                ImmersiveTargetContext target = blockTargetAt(client, nearbyPos);
 
                 if (isCompatibleWithScreenProfile(target, screenProfile)) {
                     return target;
@@ -781,6 +850,19 @@ public final class ImmersiveTargetResolver {
                 settings.orientationMode,
                 settings.orientation,
                 settings.yawMode
+        );
+    }
+
+    private static void debugChat(MinecraftClient client, String message) {
+        if (!ImmersiveChestsConfigScreen.debugLogging
+                || client == null
+                || client.player == null) {
+            return;
+        }
+
+        client.player.sendMessage(
+                Text.literal("[ImmersiveChests] " + message),
+                false
         );
     }
 }

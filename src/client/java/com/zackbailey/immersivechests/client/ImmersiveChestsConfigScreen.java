@@ -371,6 +371,16 @@ public class ImmersiveChestsConfigScreen {
                 ImmersiveYawMode.FACE
         );
 
+        public static final BlockSettings MODDED_CONTAINER = new BlockSettings(
+                0.0, 1.20, 0.0,
+                0.0, 0.0, 1.20,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.NEAREST_AXIS,
+                ImmersiveCameraOrientation.TOP,
+                ImmersiveYawMode.AXIS
+        );
+
         public static Screen create(Screen parent) {
                 ConfigBuilder builder = ConfigBuilder.create()
                                 .setParentScreen(parent)
@@ -407,6 +417,7 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Hopper Minecart", HOPPER_MINECART);
                 addBlockCategory(builder, entryBuilder, "Dispenser", DISPENSER);
                 addBlockCategory(builder, entryBuilder, "Dropper", DROPPER);
+                addBlockCategory(builder, entryBuilder, "Modded Container", MODDED_CONTAINER);
                 return builder.build();
         }
 
