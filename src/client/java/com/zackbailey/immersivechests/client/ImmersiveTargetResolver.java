@@ -6,6 +6,7 @@ import com.zackbailey.immersivechests.client.records.ImmersiveTargetProfile;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveTargetType;
 
+import net.minecraft.entity.vehicle.HopperMinecartEntity;
 import net.minecraft.block.BarrelBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
@@ -231,6 +232,14 @@ public final class ImmersiveTargetResolver {
             return profile(ImmersiveTargetType.COMMAND_BLOCK, ImmersiveChestsConfigScreen.COMMAND_BLOCK);
         }
 
+        if (screen instanceof HopperScreen) {
+            return profile(ImmersiveTargetType.HOPPER, ImmersiveChestsConfigScreen.HOPPER);
+        }
+
+        if (screen instanceof Generic3x3ContainerScreen) {
+            return profile(ImmersiveTargetType.DISPENSER, ImmersiveChestsConfigScreen.DISPENSER);
+        }
+
         if (screen instanceof GenericContainerScreen) {
             return profile(ImmersiveTargetType.CHEST, ImmersiveChestsConfigScreen.CHEST);
         }
@@ -276,6 +285,14 @@ public final class ImmersiveTargetResolver {
                     entity,
                     ImmersiveTargetType.CHEST_BOAT,
                     ImmersiveChestsConfigScreen.CHEST_BOAT
+            );
+        }
+
+        if (entity instanceof HopperMinecartEntity) {
+            return entityTargetContext(
+                    entity,
+                    ImmersiveTargetType.HOPPER_MINECART,
+                    ImmersiveChestsConfigScreen.HOPPER_MINECART
             );
         }
 
@@ -494,6 +511,18 @@ public final class ImmersiveTargetResolver {
             return blockContext(ImmersiveTargetType.COMMAND_BLOCK, ImmersiveChestsConfigScreen.COMMAND_BLOCK, pos, center);
         }
 
+        if (blockId.equals("minecraft:hopper")) {
+            return blockContext(ImmersiveTargetType.HOPPER, ImmersiveChestsConfigScreen.HOPPER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:dispenser")) {
+            return blockContext(ImmersiveTargetType.DISPENSER, ImmersiveChestsConfigScreen.DISPENSER, pos, center);
+        }
+
+        if (blockId.equals("minecraft:dropper")) {
+            return blockContext(ImmersiveTargetType.DROPPER, ImmersiveChestsConfigScreen.DROPPER, pos, center);
+        }
+
         return null;
     }
 
@@ -628,6 +657,11 @@ public final class ImmersiveTargetResolver {
         return null;
     }
 
+    private static boolean isDispenserDropperFamily(ImmersiveTargetType type) {
+        return type == ImmersiveTargetType.DISPENSER
+                || type == ImmersiveTargetType.DROPPER;
+    }
+
     private static boolean isCompatibleWithScreenProfile(
             ImmersiveTargetContext context,
             ImmersiveTargetProfile screenProfile
@@ -647,6 +681,10 @@ public final class ImmersiveTargetResolver {
             return isGenericContainerFamily(found);
         }
 
+        if (isDispenserDropperFamily(expected)) {
+            return isDispenserDropperFamily(found);
+        }
+
         if (expected == ImmersiveTargetType.FURNACE) {
             return found == ImmersiveTargetType.FURNACE;
         }
@@ -661,10 +699,16 @@ public final class ImmersiveTargetResolver {
                 || type == ImmersiveTargetType.TRAPPED_CHEST
                 || type == ImmersiveTargetType.COPPER_CHEST
                 || type == ImmersiveTargetType.ENDER_CHEST
+                || type == ImmersiveTargetType.BARREL
                 || type == ImmersiveTargetType.SHULKER_BOX
                 || type == ImmersiveTargetType.CHEST_BOAT
-                || type == ImmersiveTargetType.CHEST_MINECART;
+                || type == ImmersiveTargetType.CHEST_MINECART
+                || type == ImmersiveTargetType.HOPPER
+                || type == ImmersiveTargetType.HOPPER_MINECART
+                || type == ImmersiveTargetType.DISPENSER
+                || type == ImmersiveTargetType.DROPPER;
     }
+
 
     private static ImmersiveTargetContext findSafeEntityFallback(
             ImmersiveTargetProfile screenProfile

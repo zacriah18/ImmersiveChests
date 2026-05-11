@@ -27,5 +27,9 @@ public enum ImmersiveTargetType {
     LECTERN_BOOK,
     SHULKER_BOX,
     AUTO_CRAFTER,
-    COMMAND_BLOCK
+    COMMAND_BLOCK,
+    HOPPER,
+    HOPPER_MINECART,
+    DISPENSER,
+    DROPPER,
 }

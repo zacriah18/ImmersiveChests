@@ -331,6 +331,46 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.AXIS);
 
+        public static final BlockSettings HOPPER = new BlockSettings(
+                0.0, 1.05, 0.0,
+                0.0, 0.0, 1.0,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.BLOCK_FACE,
+                ImmersiveCameraOrientation.TOP,
+                ImmersiveYawMode.FACE
+        );
+
+        public static final BlockSettings HOPPER_MINECART = new BlockSettings(
+                0.0, 1.35, 0.0,
+                0.0, 0.0, 1.0,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.FIXED,
+                ImmersiveCameraOrientation.TOP,
+                ImmersiveYawMode.FACE
+        );
+
+        public static final BlockSettings DISPENSER = new BlockSettings(
+                0.0, 1.25, 0.0,
+                0.0, 0.0, 1.25,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.BLOCK_FACE,
+                ImmersiveCameraOrientation.NORTH,
+                ImmersiveYawMode.FACE
+        );
+
+        public static final BlockSettings DROPPER = new BlockSettings(
+                0.0, 1.25, 0.0,
+                0.0, 0.0, 1.25,
+                0.0,
+                false,
+                ImmersiveCameraOrientationMode.BLOCK_FACE,
+                ImmersiveCameraOrientation.NORTH,
+                ImmersiveYawMode.FACE
+        );
+
         public static Screen create(Screen parent) {
                 ConfigBuilder builder = ConfigBuilder.create()
                                 .setParentScreen(parent)
@@ -363,7 +403,10 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Chest Boat", CHEST_BOAT);
                 addBlockCategory(builder, entryBuilder, "Shulker Box", SHULKER_BOX);
                 addBlockCategory(builder, entryBuilder, "Command Block", COMMAND_BLOCK);
-
+                addBlockCategory(builder, entryBuilder, "Hopper", HOPPER);
+                addBlockCategory(builder, entryBuilder, "Hopper Minecart", HOPPER_MINECART);
+                addBlockCategory(builder, entryBuilder, "Dispenser", DISPENSER);
+                addBlockCategory(builder, entryBuilder, "Dropper", DROPPER);
                 return builder.build();
         }
 
