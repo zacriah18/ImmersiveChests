@@ -33,7 +33,7 @@ public abstract class CameraMixin {
             CallbackInfo ci
     ) {
         if (!ImmersiveChestsConfigScreen.enabled
-                || ImmersiveCameraState.getProgress() <= 0.0f
+                || !ImmersiveCameraState.shouldOverrideCamera()
                 || entity == null) {
             return;
         }
@@ -48,6 +48,14 @@ public abstract class CameraMixin {
                 entity.getYRot()
         );
 
+        ImmersiveCameraState.updateClosingTarget(
+                livePos,
+                entity.getYRot(),
+                entity.getXRot()
+        );
+
+        ImmersiveCameraState.tick(false);
+
         Vec3 newPos = ImmersiveCameraState.animatePosition(livePos);
 
         this.setPosition(newPos.x, newPos.y, newPos.z);
@@ -56,10 +64,7 @@ public abstract class CameraMixin {
                 ImmersiveCameraState.animateYaw(entity.getYRot()),
                 ImmersiveCameraState.animatePitch(entity.getXRot())
         );
-
-        if (!ImmersiveCameraState.active
-                && newPos.distanceToSqr(livePos) < 0.0001) {
-            ImmersiveCameraState.finishClosing();
-        }
     }
+
+    
 }
