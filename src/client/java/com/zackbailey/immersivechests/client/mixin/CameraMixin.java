@@ -1,11 +1,14 @@
 package com.zackbailey.immersivechests.client.mixin;
-import net.minecraft.client.MinecraftClient;
+
 import com.zackbailey.immersivechests.client.ImmersiveCameraState;
 import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen;
+
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -30,30 +33,38 @@ public abstract class CameraMixin {
             float tickProgress,
             CallbackInfo ci
     ) {
-        if (!ImmersiveChestsConfigScreen.enabled || ImmersiveCameraState.getProgress() <= 0.0f) {
+        if (!ImmersiveChestsConfigScreen.enabled
+                || !ImmersiveCameraState.shouldOverrideCamera()
+                || focusedEntity == null) {
             return;
         }
 
         Vec3d livePos = focusedEntity.getCameraPosVec(tickProgress);
 
+        float liveYaw = focusedEntity.getYaw(tickProgress);
+        float livePitch = focusedEntity.getPitch(tickProgress);
+
         ImmersiveCameraState.refreshActiveTarget(
                 MinecraftClient.getInstance(),
                 livePos,
-                focusedEntity.getYaw(tickProgress)
+                liveYaw
         );
+
+        ImmersiveCameraState.updateClosingTarget(
+                livePos,
+                liveYaw,
+                livePitch
+        );
+
+        ImmersiveCameraState.tick(false);
 
         Vec3d newPos = ImmersiveCameraState.animatePosition(livePos);
 
         this.setPos(newPos.x, newPos.y, newPos.z);
+
         this.setRotation(
-            ImmersiveCameraState.animateYaw(focusedEntity.getYaw(tickProgress)),
-            ImmersiveCameraState.animatePitch(focusedEntity.getPitch(tickProgress))
+                ImmersiveCameraState.animateYaw(liveYaw),
+                ImmersiveCameraState.animatePitch(livePitch)
         );
-
-        if (!ImmersiveCameraState.active && newPos.squaredDistanceTo(livePos) < 0.0001) {
-            ImmersiveCameraState.finishClosing();
-        }
     }
-
-    
 }
