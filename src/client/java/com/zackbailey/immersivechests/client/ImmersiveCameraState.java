@@ -8,36 +8,56 @@ import net.minecraft.world.phys.Vec3;
 public class ImmersiveCameraState {
     public static boolean active = false;
 
-    private static float progress = 0.0f;
-    private static double animationDistance = 1.0;
+    private enum Phase {
+        IDLE,
+        OPENING,
+        ACTIVE,
+        CLOSING
+    }
+
+    private static Phase phase = Phase.IDLE;
 
     private static ImmersiveResolvedTarget target = null;
 
     private static Vec3 startPos = null;
-    private static Vec3 finalPos = null;
+    private static Vec3 targetPos = null;
+    private static Vec3 currentPos = null;
 
     private static float startYaw = 0.0f;
     private static float startPitch = 0.0f;
 
-    private static float finalYaw = 0.0f;
-    private static float finalPitch = 0.0f;
+    private static float targetYaw = 0.0f;
+    private static float targetPitch = 0.0f;
 
-    private static Vec3 smoothedFinalPos = null;
-    private static float smoothedFinalYaw = 0.0f;
-    private static float smoothedFinalPitch = 0.0f;
+    private static float currentYaw = 0.0f;
+    private static float currentPitch = 0.0f;
+
+    private static float progress = 0.0f;
 
     private ImmersiveCameraState() {}
 
     public static void setTarget(ImmersiveResolvedTarget resolvedTarget) {
         target = resolvedTarget;
-
-        if (target != null && startPos != null) {
-            refreshFinalTarget();
-        }
     }
 
     public static void setActive(boolean value) {
+        if (active == value) {
+            return;
+        }
+
         active = value;
+
+        if (active) {
+            phase = Phase.OPENING;
+            progress = 0.0f;
+        } else {
+            phase = Phase.CLOSING;
+            progress = 0.0f;
+
+            startPos = currentPos;
+            startYaw = currentYaw;
+            startPitch = currentPitch;
+        }
     }
 
     public static boolean hasTarget() {
@@ -48,138 +68,115 @@ public class ImmersiveCameraState {
         return progress;
     }
 
-    public static void tick(boolean playerMoving) {
-        if (ImmersiveChestsConfigScreen.instantAnimate) {
-            progress = active ? 1.0f : 0.0f;
-            return;
-        }
-
-        float baseSpeed = (float) ImmersiveChestsConfigScreen.animationSpeed;
-
-        float speed = baseSpeed / (float) Math.pow(
-                animationDistance,
-                ImmersiveChestsConfigScreen.distanceSpeedScalar
-        );
-
-        if (active) {
-            progress = Math.min(1.0f, progress + speed);
-        } else {
-            float closeSpeed = playerMoving ? speed * 2.5f : speed;
-            progress = Math.max(0.0f, progress - closeSpeed);
-        }
-    }
-
     public static void prepareCameraTransition(
             Vec3 playerCameraPos,
             float playerYaw,
             float playerPitch
     ) {
-        if (target == null || playerCameraPos == null) {
+        if (playerCameraPos == null || target == null) {
             return;
         }
+
+        currentPos = playerCameraPos;
+        currentYaw = playerYaw;
+        currentPitch = playerPitch;
 
         startPos = playerCameraPos;
         startYaw = playerYaw;
         startPitch = playerPitch;
 
-        refreshFinalTarget();
+        refreshTargetState();
 
-        if (finalPos != null) {
-            animationDistance = Math.max(0.5, playerCameraPos.distanceTo(finalPos));
-        }
+        progress = 0.0f;
+        phase = active ? Phase.OPENING : Phase.IDLE;
     }
 
-    private static void refreshFinalTarget() {
-        if (target == null) {
+    public static void tick(boolean playerMoving) {
+        if (phase == Phase.IDLE || currentPos == null) {
             return;
         }
 
-        Vec3 rawFinalPos = target.currentCenter().add(target.currentCameraOffset());
-        float rawFinalYaw = target.currentLookYawValue();
-        float rawFinalPitch = Mth.clamp(target.currentPitchValue(), -90.0f, 90.0f);
-
-        if (smoothedFinalPos == null) {
-            smoothedFinalPos = rawFinalPos;
-            smoothedFinalYaw = rawFinalYaw;
-            smoothedFinalPitch = rawFinalPitch;
-        } else {
-            double smoothing = 0.35;
-
-            smoothedFinalPos = smoothedFinalPos.lerp(rawFinalPos, smoothing);
-            smoothedFinalYaw = Mth.rotLerp((float) smoothing, smoothedFinalYaw, rawFinalYaw);
-            smoothedFinalPitch = Mth.rotLerp((float) smoothing, smoothedFinalPitch, rawFinalPitch);
+        if (phase == Phase.OPENING || phase == Phase.ACTIVE) {
+            refreshTargetState();
         }
 
-        finalPos = smoothedFinalPos;
-        finalYaw = smoothedFinalYaw;
-        finalPitch = smoothedFinalPitch;
-    }
-
-    public static Vec3 animateToFinalPosition(Vec3 livePlayerPos) {
-        if (startPos == null || finalPos == null) {
-            return livePlayerPos;
+        if (startPos == null || targetPos == null) {
+            return;
         }
 
-        refreshFinalTarget();
+        double speed = animationStepSpeed();
 
-        if (target != null && target.isEntityTarget() && progress >= 1.0f) {
-            return finalPos;
+        if (phase == Phase.CLOSING) {
+            speed *= ImmersiveChestsConfigScreen.closeAnimationScale;
+
+            if (playerMoving) {
+                speed *= 1.35;
+            }
         }
 
-        return startPos.lerp(finalPos, progress);
-    }
+        speed = Mth.clamp(speed, 0.001, 0.08);
 
-    public static Vec3 animateToStartPosition(Vec3 livePlayerPos) {
-        if (finalPos == null) {
-            return livePlayerPos;
+        progress = (float) clamp01(progress + speed);
+
+        double eased = smootherStep(progress);
+
+        currentPos = startPos.lerp(targetPos, eased);
+        currentYaw = Mth.rotLerp((float) eased, startYaw, targetYaw);
+        currentPitch = Mth.rotLerp((float) eased, startPitch, targetPitch);
+
+        applySnapThreshold();
+
+        if (progress >= 1.0f) {
+            if (phase == Phase.OPENING) {
+                phase = Phase.ACTIVE;
+            } else if (phase == Phase.CLOSING) {
+                finishClosing();
+            }
         }
-
-        return finalPos.lerp(livePlayerPos, 1.0f - progress);
     }
 
     public static Vec3 animatePosition(Vec3 livePlayerPos) {
-        return active
-                ? animateToFinalPosition(livePlayerPos)
-                : animateToStartPosition(livePlayerPos);
+        if (currentPos == null) {
+            return livePlayerPos;
+        }
+
+        if (phase == Phase.CLOSING && livePlayerPos != null) {
+            targetPos = livePlayerPos;
+        }
+
+        return currentPos;
+    }
+
+    public static Vec3 animateToFinalPosition(Vec3 livePlayerPos) {
+        return animatePosition(livePlayerPos);
+    }
+
+    public static Vec3 animateToStartPosition(Vec3 livePlayerPos) {
+        return animatePosition(livePlayerPos);
     }
 
     public static float animateYaw(float liveYaw) {
-        if (active) {
-            refreshFinalTarget();
-            return Mth.rotLerp((float) progress, startYaw, finalYaw);
+        if (currentPos == null) {
+            return liveYaw;
         }
 
-        return Mth.rotLerp(1.0f - (float) progress, finalYaw, liveYaw);
+        if (phase == Phase.CLOSING) {
+            targetYaw = liveYaw;
+        }
+
+        return currentYaw;
     }
 
     public static float animatePitch(float livePitch) {
-        if (active) {
-            refreshFinalTarget();
-            return Mth.rotLerp((float) progress, startPitch, finalPitch);
+        if (currentPos == null) {
+            return livePitch;
         }
 
-        return Mth.rotLerp(1.0f - (float) progress, finalPitch, livePitch);
-    }
+        if (phase == Phase.CLOSING) {
+            targetPitch = livePitch;
+        }
 
-    public static void finishClosing() {
-        active = false;
-        progress = 0.0f;
-        animationDistance = 1.0;
-
-        target = null;
-
-        startPos = null;
-        finalPos = null;
-
-        startYaw = 0.0f;
-        startPitch = 0.0f;
-
-        finalYaw = 0.0f;
-        finalPitch = 0.0f;
-
-        smoothedFinalPos = null;
-        smoothedFinalYaw = 0.0f;
-        smoothedFinalPitch = 0.0f;
+        return currentPitch;
     }
 
     public static void refreshActiveTarget(
@@ -187,12 +184,146 @@ public class ImmersiveCameraState {
             Vec3 playerCameraPos,
             float playerYaw
     ) {
-        if (!active
-                || target == null
-                || !target.isEntityTarget()) {
+        if (!active || target == null) {
             return;
         }
 
-        refreshFinalTarget();
+        refreshTargetState();
+    }
+
+    public static void finishClosing() {
+        active = false;
+        phase = Phase.IDLE;
+
+        target = null;
+
+        startPos = null;
+        targetPos = null;
+        currentPos = null;
+
+        startYaw = 0.0f;
+        startPitch = 0.0f;
+
+        targetYaw = 0.0f;
+        targetPitch = 0.0f;
+
+        currentYaw = 0.0f;
+        currentPitch = 0.0f;
+
+        progress = 0.0f;
+    }
+
+    private static void refreshTargetState() {
+        if (target == null) {
+            return;
+        }
+
+        targetPos = target.currentCenter().add(target.currentCameraOffset());
+        targetYaw = target.currentLookYawValue();
+        targetPitch = Mth.clamp(target.currentPitchValue(), -90.0f, 90.0f);
+    }
+
+    private static double animationStepSpeed() {
+        double animationSpeed = scaledSpeed(
+                ImmersiveChestsConfigScreen.animationSpeed,
+                0.005,
+                0.045
+        );
+
+        if (animationSpeed <= 0.0) {
+            return 1.0;
+        }
+
+        double distanceScale = scaledSpeed(
+                1,
+                0.0,
+                0.03
+        );
+
+        double openScale = scaledSpeed(
+                ImmersiveChestsConfigScreen.openAnimationScale,
+                0.5,
+                2.0
+        );
+
+        double closeScale = scaledSpeed(
+                ImmersiveChestsConfigScreen.closeAnimationScale,
+                0.5,
+                2.0
+        );
+
+        double distance = startPos.distanceTo(targetPos);
+        double normalizedDistance = Math.min(distance / 4.0, 1.0);
+
+        double distanceBoost =
+                normalizedDistance * distanceScale;
+
+        double speed = animationSpeed + distanceBoost;
+
+        if (phase == Phase.OPENING) {
+            speed *= openScale;
+        }
+
+        if (phase == Phase.CLOSING) {
+            speed *= closeScale;
+        }
+
+        return speed;
+    }
+
+    private static void applySnapThreshold() {
+        double snapThreshold = scaledSpeed(
+                1, // removed user configurability but left architecture for future retrospectoptics
+                0.00001,
+                0.003
+        );
+
+        if (targetPos != null && currentPos.distanceTo(targetPos) <= snapThreshold) {
+            currentPos = targetPos;
+        }
+
+        if (Math.abs(Mth.wrapDegrees(targetYaw - currentYaw)) <= snapThreshold) {
+            currentYaw = targetYaw;
+        }
+
+        if (Math.abs(targetPitch - currentPitch) <= snapThreshold) {
+            currentPitch = targetPitch;
+        }
+    }
+
+    private static double smootherStep(double value) {
+        double t = clamp01(value);
+        return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+    }
+
+    private static double clamp01(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
+    }
+
+    public static boolean shouldOverrideCamera() {
+        return phase != Phase.IDLE;
+    }
+
+    public static boolean isClosing() {
+        return phase == Phase.CLOSING;
+    }
+
+    public static boolean isCloseAnimationFinished() {
+        return phase == Phase.CLOSING && progress >= 1.0f;
+    }
+
+    private static double scaledSpeed(double value, double min, double max) {
+        double t = Mth.clamp((value - 1.0) / 9.0, 0.0, 1.0);
+        return min + (max - min) * t;
+    }
+
+    public static void updateClosingTarget(Vec3 livePlayerPos, float liveYaw, float livePitch) {
+        if (phase != Phase.CLOSING || livePlayerPos == null) {
+            return;
+        }
+
+        targetPos = livePlayerPos;
+        targetYaw = liveYaw;
+        targetPitch = livePitch;
     }
 }

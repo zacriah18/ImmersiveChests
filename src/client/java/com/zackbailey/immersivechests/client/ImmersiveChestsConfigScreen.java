@@ -17,16 +17,23 @@ public class ImmersiveChestsConfigScreen {
 
         // --- GENERAL CAMERA ---
         public static boolean enabled = true;
-        public static double animationSpeed = 0.15;
         public static boolean debugLogging = false;
-        public static double distanceSpeedScalar = 0.20;
-        public static boolean instantAnimate = false;
 
         public static final boolean defaultenabled = enabled;
-        public static final double defaultanimationSpeed = animationSpeed;
         public static final boolean defaultdebugLogging = debugLogging;
-        public static final double defaultdistanceSpeedScalar = distanceSpeedScalar;
-        public static final boolean defaultinstantAnimate = instantAnimate;
+        
+        public static double offsetScale = 4;
+        public static final double defaultOffsetScale = offsetScale;
+
+        // --- ANIMATION ---
+
+        public static double animationSpeed = 5;
+        public static double openAnimationScale = 3;
+        public static double closeAnimationScale = 2;
+        
+        public static final double defaultanimationSpeed = animationSpeed;
+        public static final double defaultopenAnimationScale = openAnimationScale;
+        public static final double defaultcloseAnimationScale = closeAnimationScale;
 
         // --- SPECIAL ---
         public static double boatDistanceBehind = 0.5;
@@ -126,7 +133,7 @@ public class ImmersiveChestsConfigScreen {
         // Y = vertical up/down
         // Z = local forward/back / distance along selected orientation
         public static final BlockSettings CHEST = new BlockSettings(
-                        0.0, 0.85, 0.0,
+                        0.0, 0.90, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -135,15 +142,15 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings BARREL = new BlockSettings(
-                        0.0, 1.5, 0.0,
-                        0.0, 0.0, 1.5,
+                        0.0, 1.6, 0.0,
+                        0.0, 0.0, 1.6,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
                         ImmersiveCameraOrientation.TOP,
                         ImmersiveYawMode.AXIS);
         public static final BlockSettings DOUBLE_CHEST_LEFT = new BlockSettings(
-                        0.5, 0.68, 0.0,
+                        0.515, 0.735, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -152,7 +159,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings DOUBLE_CHEST_RIGHT = new BlockSettings(
-                        -0.5, 0.68, 0.0,
+                        -0.515, 0.735, 0.0,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -180,7 +187,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings STONECUTTER = new BlockSettings(
                         0.0, 1, 0.0,
-                        0.0, 0.0, 0.9,
+                        0.0, 0.0, 0.8,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -215,7 +222,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings GRINDSTONE = new BlockSettings(
-                        0.0, 1.05, 0.0,
+                        0.0, 1.00, 0.0,
                         0.0, 0.0, 0.94,
                         0.0,
                         false,
@@ -224,8 +231,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings FURNACE = new BlockSettings(
-                        0.0, 1.48, 0.0,
-                        0.0, 0.0, 1.48,
+                        0.0, 1.63, 0.0,
+                        -0.01, 0.0, 1.63,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -233,8 +240,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings SMOKER = new BlockSettings(
-                        0.0, 1.48, 0.0,
-                        0.0, 0.0, 1.48,
+                        0.0, 1.63, 0.0,
+                        -0.01, 0.0, 1.63,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -242,8 +249,8 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings BLAST_FURNACE = new BlockSettings(
-                        0.0, 1.48, 0.0,
-                        0.0, 0.0, 1.48,
+                        0.0, 1.63, 0.0,
+                        -0.01, 0.0, 1.63,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -287,7 +294,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings LECTERN = new BlockSettings(
-                        0.0, 1.15, 0.22,
+                        0.0, 1.25, -0.24,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -305,7 +312,7 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.FACE);
 
         public static final BlockSettings CHEST_BOAT = new BlockSettings(
-                        0.0, 1.64, 0.0,
+                        0.0, 1.8, -0.511,
                         0.0, 0.0, 1,
                         0.0,
                         false,
@@ -353,7 +360,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings DISPENSER = new BlockSettings(
                 0.0, 1.25, 0.0,
-                0.0, 0.0, 1.25,
+                -0.01, 0.0, 1.65,
                 0.0,
                 false,
                 ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -363,7 +370,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings DROPPER = new BlockSettings(
                 0.0, 1.25, 0.0,
-                0.0, 0.0, 1.25,
+                -0.01, 0.0, 1.65,
                 0.0,
                 false,
                 ImmersiveCameraOrientationMode.BLOCK_FACE,
@@ -389,6 +396,7 @@ public class ImmersiveChestsConfigScreen {
                 ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
                 addCameraCategory(builder, entryBuilder);
+                addAnimationCategory(builder, entryBuilder);
                 addSpecialCategory(builder, entryBuilder);
                 addBlockCategory(builder, entryBuilder, "Chest", CHEST);
                 addBlockCategory(builder, entryBuilder, "Double Chest Left", DOUBLE_CHEST_LEFT);
@@ -430,20 +438,18 @@ public class ImmersiveChestsConfigScreen {
                                 .setSaveConsumer(v -> enabled = v)
                                 .build());
 
-                addDouble(camera, entryBuilder, "Animation Speed", animationSpeed, defaultanimationSpeed,
-                                v -> animationSpeed = v);
-                addDouble(camera, entryBuilder, "Distance Smoothing Strength", distanceSpeedScalar,
-                                defaultdistanceSpeedScalar, v -> distanceSpeedScalar = v);
-
-                camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Instant Animate"), instantAnimate)
-                                .setDefaultValue(defaultinstantAnimate)
-                                .setSaveConsumer(v -> instantAnimate = v)
-                                .build());
-
                 camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Debug Logging"), debugLogging)
                                 .setDefaultValue(defaultdebugLogging)
                                 .setSaveConsumer(v -> debugLogging = v)
                                 .build());
+
+                addDoubleWithTooltip(camera, entryBuilder,
+                                "FOV/Offset Scaling",
+                                "Did you setup your config then change your FOV; use this to hone in all block config scalings.",
+                                offsetScale,
+                                defaultOffsetScale,
+                                v -> offsetScale = v);
+
         }
 
         private static void addSpecialCategory(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
@@ -567,5 +573,47 @@ public class ImmersiveChestsConfigScreen {
                                 .setMax(10.0)
                                 .setSaveConsumer(saveConsumer)
                                 .build());
+        }
+
+        private static void addAnimationCategory(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
+                ConfigCategory animation = builder.getOrCreateCategory(Component.literal("Animation"));
+
+                addDoubleWithTooltip(animation, entryBuilder,
+                                "Animation Speed",
+                                "Base speed of immersive camera movement. Set to 0 for instant transitions.",
+                                animationSpeed,
+                                defaultanimationSpeed,
+                                v -> animationSpeed = v);
+
+                addDoubleWithTooltip(animation, entryBuilder,
+                                "Open Animation Scale",
+                                "Multiplier for camera movement speed while opening a container.",
+                                openAnimationScale,
+                                defaultopenAnimationScale,
+                                v -> openAnimationScale = v);
+
+                addDoubleWithTooltip(animation, entryBuilder,
+                                "Close Animation Scale",
+                                "Multiplier for camera movement speed while returning to the player view.",
+                                closeAnimationScale,
+                                defaultcloseAnimationScale,
+                                v -> closeAnimationScale = v);
+        }
+
+        private static void addDoubleWithTooltip(
+                ConfigCategory category,
+                ConfigEntryBuilder entryBuilder,
+                String label,
+                String tooltip,
+                double value,
+                double defaultValue,
+                Consumer<Double> saveConsumer) {
+        category.addEntry(entryBuilder.startDoubleField(Component.literal(label), value)
+                        .setDefaultValue(defaultValue)
+                        .setTooltip(Component.literal(tooltip))
+                        .setMin(-10.0)
+                        .setMax(10.0)
+                        .setSaveConsumer(saveConsumer)
+                        .build());
         }
 }

@@ -1,6 +1,5 @@
 package com.zackbailey.immersivechests.client;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.zackbailey.immersivechests.client.records.ImmersiveResolvedTarget;
 import com.zackbailey.immersivechests.client.records.ImmersiveTargetContext;
 import com.zackbailey.immersivechests.client.records.ImmersiveTargetProfile;
