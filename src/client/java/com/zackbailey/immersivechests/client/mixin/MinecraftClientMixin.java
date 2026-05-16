@@ -1,6 +1,8 @@
 package com.zackbailey.immersivechests.client.mixin;
 
 import com.zackbailey.immersivechests.client.ImmersiveCameraState;
+import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen;
+import com.zackbailey.immersivechests.client.ImmersivePendingScreenState;
 import com.zackbailey.immersivechests.client.ImmersiveTargetResolver;
 import com.zackbailey.immersivechests.client.records.ImmersiveResolvedTarget;
 
@@ -17,18 +19,36 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin {
 
-    @Inject(method = "setScreen", at = @At("HEAD"))
+    @Inject(method = "setScreen", at = @At("HEAD"), cancellable = true)
     private void immersivechests_onSetScreen(Screen screen, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
 
+        if (ImmersivePendingScreenState.releasing) {
+            return;
+        }
+
+        if (ImmersivePendingScreenState.delaying && screen != null) {
+            String screenName = screen.getClass().getName();
+
+            if (screenName.contains("InventoryScreen")
+                    || screen instanceof GameMenuScreen) {
+                ImmersivePendingScreenState.cancelPending(client);
+                ci.cancel();
+                return;
+            }
+        }
+
         if (screen instanceof GameMenuScreen) {
+            ImmersivePendingScreenState.clear();
             ImmersiveCameraState.finishClosing();
             return;
         }
 
-        boolean closingImmersiveTarget = screen == null && ImmersiveCameraState.active;
+        boolean closingImmersiveTarget =
+                screen == null && ImmersiveCameraState.active;
 
         if (closingImmersiveTarget) {
+            ImmersivePendingScreenState.clear();
             ImmersiveCameraState.setActive(false);
             return;
         }
@@ -37,18 +57,19 @@ public abstract class MinecraftClientMixin {
             return;
         }
 
-        Vec3d playerCameraPos = client.player.getCameraPosVec(1.0f);
+        Vec3d playerCameraPos =
+                client.player.getCameraPosVec(1.0f);
+
         float playerYaw = client.player.getYaw();
         float playerPitch = client.player.getPitch();
 
-        ImmersiveResolvedTarget target = ImmersiveTargetResolver.resolve(
-                client,
-                screen,
-                playerCameraPos,
-                playerYaw
-        );
-
-        System.out.println("setScreen called: " + screen.getClass().getName());
+        ImmersiveResolvedTarget target =
+                ImmersiveTargetResolver.resolve(
+                        client,
+                        screen,
+                        playerCameraPos,
+                        playerYaw
+                );
 
         if (target == null) {
             return;
@@ -63,5 +84,10 @@ public abstract class MinecraftClientMixin {
         );
 
         ImmersiveCameraState.setActive(true);
+
+        if (ImmersiveChestsConfigScreen.delayGUI) {
+            ImmersivePendingScreenState.begin(screen);
+            ci.cancel();
+        }
     }
 }
