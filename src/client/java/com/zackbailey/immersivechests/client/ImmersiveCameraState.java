@@ -1,6 +1,7 @@
 package com.zackbailey.immersivechests.client;
 
 import com.zackbailey.immersivechests.client.records.ImmersiveResolvedTarget;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -40,6 +41,14 @@ public class ImmersiveCameraState {
         target = resolvedTarget;
     }
 
+    public static boolean hasTarget() {
+        return target != null;
+    }
+
+    public static float getProgress() {
+        return progress;
+    }
+
     public static void setActive(boolean value) {
         if (active == value) {
             return;
@@ -58,14 +67,6 @@ public class ImmersiveCameraState {
             startYaw = currentYaw;
             startPitch = currentPitch;
         }
-    }
-
-    public static boolean hasTarget() {
-        return target != null;
-    }
-
-    public static float getProgress() {
-        return progress;
     }
 
     public static void prepareCameraTransition(
@@ -88,9 +89,16 @@ public class ImmersiveCameraState {
         refreshTargetState();
 
         progress = 0.0f;
-        phase = active ? Phase.OPENING : Phase.IDLE;
+        phase = Phase.OPENING;
     }
 
+    /**
+     * Advance camera animation state.
+     *
+     * This method is intended to be called from CameraMixin/render update, not
+     * from ClientTickEvents. CameraMixin owns render-rate camera progression;
+     * ImmersivePendingScreenState owns delayed GUI release timing.
+     */
     public static void tick(boolean playerMoving) {
         if (phase == Phase.IDLE || currentPos == null) {
             return;
@@ -120,9 +128,17 @@ public class ImmersiveCameraState {
 
         double eased = smootherStep(progress);
 
-        currentPos = startPos.lerp(targetPos, eased);
-        currentYaw = Mth.rotLerp((float) eased, startYaw, targetYaw);
-        currentPitch = Mth.rotLerp((float) eased, startPitch, targetPitch);
+        if (phase == Phase.OPENING) {
+            if (isMovingTarget()) {
+                tickOpeningLive(speed);
+            } else {
+                tickOpeningStatic(eased);
+            }
+        } else if (phase == Phase.ACTIVE) {
+            snapToTarget();
+        } else {
+            tickClosing(eased);
+        }
 
         applySnapThreshold();
 
@@ -133,6 +149,37 @@ public class ImmersiveCameraState {
                 finishClosing();
             }
         }
+    }
+
+
+    private static boolean isMovingTarget() {
+        return target != null && target.isEntityTarget();
+    }
+
+    private static void tickOpeningStatic(double eased) {
+        currentPos = startPos.lerp(targetPos, eased);
+        currentYaw = Mth.rotLerp((float) eased, startYaw, targetYaw);
+        currentPitch = Mth.lerp((float) eased, startPitch, targetPitch);
+    }
+
+    private static void tickOpeningLive(double speed) {
+        float frameT = (float) Mth.clamp(speed * 10.0, 0.05, 0.55);
+
+        currentPos = currentPos.lerp(targetPos, frameT);
+        currentYaw = Mth.rotLerp(frameT, currentYaw, targetYaw);
+        currentPitch = Mth.lerp(frameT, currentPitch, targetPitch);
+    }
+
+    private static void tickClosing(double eased) {
+        currentPos = startPos.lerp(targetPos, eased);
+        currentYaw = Mth.rotLerp((float) eased, startYaw, targetYaw);
+        currentPitch = Mth.lerp((float) eased, startPitch, targetPitch);
+    }
+
+    private static void snapToTarget() {
+        currentPos = targetPos;
+        currentYaw = targetYaw;
+        currentPitch = targetPitch;
     }
 
     public static Vec3 animatePosition(Vec3 livePlayerPos) {
@@ -189,6 +236,16 @@ public class ImmersiveCameraState {
         }
 
         refreshTargetState();
+    }
+
+    public static void updateClosingTarget(Vec3 livePlayerPos, float liveYaw, float livePitch) {
+        if (phase != Phase.CLOSING || livePlayerPos == null) {
+            return;
+        }
+
+        targetPos = livePlayerPos;
+        targetYaw = liveYaw;
+        targetPitch = livePitch;
     }
 
     public static void finishClosing() {
@@ -254,9 +311,7 @@ public class ImmersiveCameraState {
 
         double distance = startPos.distanceTo(targetPos);
         double normalizedDistance = Math.min(distance / 4.0, 1.0);
-
-        double distanceBoost =
-                normalizedDistance * distanceScale;
+        double distanceBoost = normalizedDistance * distanceScale;
 
         double speed = animationSpeed + distanceBoost;
 
@@ -272,8 +327,12 @@ public class ImmersiveCameraState {
     }
 
     private static void applySnapThreshold() {
+        if (isMovingTarget()) {
+            return;
+        }
+
         double snapThreshold = scaledSpeed(
-                1, // removed user configurability but left architecture for future retrospectoptics
+                1,
                 0.00001,
                 0.003
         );
@@ -300,6 +359,11 @@ public class ImmersiveCameraState {
         return Math.max(0.0, Math.min(1.0, value));
     }
 
+    private static double scaledSpeed(double value, double min, double max) {
+        double t = Mth.clamp((value - 1.0) / 9.0, 0.0, 1.0);
+        return min + (max - min) * t;
+    }
+
     public static boolean shouldOverrideCamera() {
         return phase != Phase.IDLE;
     }
@@ -312,18 +376,24 @@ public class ImmersiveCameraState {
         return phase == Phase.CLOSING && progress >= 1.0f;
     }
 
-    private static double scaledSpeed(double value, double min, double max) {
-        double t = Mth.clamp((value - 1.0) / 9.0, 0.0, 1.0);
-        return min + (max - min) * t;
+    public static boolean isOpeningFinished() {
+        return phase == Phase.ACTIVE && progress >= 1.0f;
     }
 
-    public static void updateClosingTarget(Vec3 livePlayerPos, float liveYaw, float livePitch) {
-        if (phase != Phase.CLOSING || livePlayerPos == null) {
-            return;
+    public static boolean isOpeningVisuallySettled() {
+        if (phase != Phase.OPENING && phase != Phase.ACTIVE) {
+            return false;
         }
 
-        targetPos = livePlayerPos;
-        targetYaw = liveYaw;
-        targetPitch = livePitch;
+        if (currentPos == null || targetPos == null) {
+            return false;
+        }
+
+        double positionTolerance = 0.015;
+        float angleTolerance = 0.75f;
+
+        return currentPos.distanceTo(targetPos) <= positionTolerance
+                && Math.abs(Mth.wrapDegrees(targetYaw - currentYaw)) <= angleTolerance
+                && Math.abs(targetPitch - currentPitch) <= angleTolerance;
     }
 }

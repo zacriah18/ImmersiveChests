@@ -1,6 +1,15 @@
 package com.zackbailey.immersivechests.client;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Consumer;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
 
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
@@ -15,12 +24,22 @@ import net.minecraft.network.chat.Component;
 
 public class ImmersiveChestsConfigScreen {
 
+        private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+        private static final Path CONFIG_PATH = FabricLoader.getInstance()
+                        .getConfigDir()
+                        .resolve("immersive-chests.json");
+
         // --- GENERAL CAMERA ---
         public static boolean enabled = true;
         public static boolean debugLogging = false;
-
+        public static boolean delayGUI = true;
+        public static int delayGUIReleaseTicks = 7;
+        
+        public static final int defaultdelayGUIReleaseTicks = delayGUIReleaseTicks;
+        public static final boolean defaultDelayGUI = delayGUI;
         public static final boolean defaultenabled = enabled;
         public static final boolean defaultdebugLogging = debugLogging;
+        
         
         public static double offsetScale = 4;
         public static final double defaultOffsetScale = offsetScale;
@@ -313,7 +332,7 @@ public class ImmersiveChestsConfigScreen {
 
         public static final BlockSettings CHEST_BOAT = new BlockSettings(
                         0.0, 1.8, -0.511,
-                        0.0, 0.0, 1.,
+                        0.0, 0.0, 1,
                         0.0,
                         false,
                         ImmersiveCameraOrientationMode.FIXED,
@@ -388,6 +407,235 @@ public class ImmersiveChestsConfigScreen {
                 ImmersiveYawMode.AXIS
         );
 
+
+        private static class ConfigData {
+                boolean enabled;
+                boolean debugLogging;
+                boolean delayGUI;
+                int delayGUIReleaseTicks;
+                double offsetScale;
+
+                double animationSpeed;
+                double openAnimationScale;
+                double closeAnimationScale;
+
+                double boatDistanceBehind;
+                boolean alwaysBarrelFace;
+                boolean stackedChestSupport;
+                boolean stonecutterAxisSymmetry;
+                boolean prioritizeAirBlock;
+                ImmersiveAirPriorityMode airPriorityMode;
+
+                Map<String, BlockSettingsData> blocks = new LinkedHashMap<>();
+        }
+
+        private static class BlockSettingsData {
+                double offsetX;
+                double offsetY;
+                double offsetZ;
+
+                double hozOffsetX;
+                double hozOffsetY;
+                double hozOffsetZ;
+
+                double tilt;
+                boolean flipYaw;
+
+                ImmersiveCameraOrientationMode orientationMode;
+                ImmersiveCameraOrientation orientation;
+                ImmersiveYawMode yawMode;
+        }
+
+        public static void save() {
+                try {
+                        Files.createDirectories(CONFIG_PATH.getParent());
+                        Files.writeString(CONFIG_PATH, GSON.toJson(toData()));
+                        ImmersivechestsClient.LOGGER.info("Saved Immersive Chests config to {}", CONFIG_PATH);
+                } catch (IOException e) {
+                        ImmersivechestsClient.LOGGER.error("Failed to save Immersive Chests config", e);
+                }
+        }
+
+        public static void load() {
+                if (!Files.exists(CONFIG_PATH)) {
+                        save();
+                        return;
+                }
+
+                try {
+                        ConfigData data = GSON.fromJson(Files.readString(CONFIG_PATH), ConfigData.class);
+
+                        if (data == null) {
+                                ImmersivechestsClient.LOGGER.warn("Immersive Chests config was empty. Re-saving defaults.");
+                                save();
+                                return;
+                        }
+
+                        applyData(data);
+                        ImmersivechestsClient.LOGGER.info("Loaded Immersive Chests config from {}", CONFIG_PATH);
+                } catch (Exception e) {
+                        ImmersivechestsClient.LOGGER.error("Failed to load Immersive Chests config. Using defaults.", e);
+                }
+        }
+
+        private static ConfigData toData() {
+                ConfigData data = new ConfigData();
+
+                data.enabled = enabled;
+                data.debugLogging = debugLogging;
+                data.delayGUI = delayGUI;
+                data.delayGUIReleaseTicks = delayGUIReleaseTicks;
+                data.offsetScale = offsetScale;
+
+                data.animationSpeed = animationSpeed;
+                data.openAnimationScale = openAnimationScale;
+                data.closeAnimationScale = closeAnimationScale;
+
+                data.boatDistanceBehind = boatDistanceBehind;
+                data.alwaysBarrelFace = alwaysBarrelFace;
+                data.stackedChestSupport = stackedChestSupport;
+                data.stonecutterAxisSymmetry = stonecutterAxisSymmetry;
+                data.prioritizeAirBlock = prioritizeAirBlock;
+                data.airPriorityMode = airPriorityMode;
+
+                addBlockData(data, "CHEST", CHEST);
+                addBlockData(data, "BARREL", BARREL);
+                addBlockData(data, "DOUBLE_CHEST_LEFT", DOUBLE_CHEST_LEFT);
+                addBlockData(data, "DOUBLE_CHEST_RIGHT", DOUBLE_CHEST_RIGHT);
+                addBlockData(data, "CRAFTING_TABLE", CRAFTING_TABLE);
+                addBlockData(data, "AUTO_CRAFTER", AUTO_CRAFTER);
+                addBlockData(data, "STONECUTTER", STONECUTTER);
+                addBlockData(data, "CARTOGRAPHY_TABLE", CARTOGRAPHY_TABLE);
+                addBlockData(data, "SMITHING_TABLE", SMITHING_TABLE);
+                addBlockData(data, "LOOM", LOOM);
+                addBlockData(data, "GRINDSTONE", GRINDSTONE);
+                addBlockData(data, "FURNACE", FURNACE);
+                addBlockData(data, "SMOKER", SMOKER);
+                addBlockData(data, "BLAST_FURNACE", BLAST_FURNACE);
+                addBlockData(data, "ANVIL", ANVIL);
+                addBlockData(data, "ENCHANTING_TABLE", ENCHANTING_TABLE);
+                addBlockData(data, "BREWING_STAND", BREWING_STAND);
+                addBlockData(data, "BEACON", BEACON);
+                addBlockData(data, "LECTERN", LECTERN);
+                addBlockData(data, "CHEST_MINECART", CHEST_MINECART);
+                addBlockData(data, "CHEST_BOAT", CHEST_BOAT);
+                addBlockData(data, "SHULKER_BOX", SHULKER_BOX);
+                addBlockData(data, "COMMAND_BLOCK", COMMAND_BLOCK);
+                addBlockData(data, "HOPPER", HOPPER);
+                addBlockData(data, "HOPPER_MINECART", HOPPER_MINECART);
+                addBlockData(data, "DISPENSER", DISPENSER);
+                addBlockData(data, "DROPPER", DROPPER);
+                addBlockData(data, "MODDED_CONTAINER", MODDED_CONTAINER);
+
+                return data;
+        }
+
+        private static void applyData(ConfigData data) {
+                enabled = data.enabled;
+                debugLogging = data.debugLogging;
+                delayGUI = data.delayGUI;
+                delayGUIReleaseTicks = data.delayGUIReleaseTicks;
+                offsetScale = data.offsetScale;
+
+                animationSpeed = data.animationSpeed;
+                openAnimationScale = data.openAnimationScale;
+                closeAnimationScale = data.closeAnimationScale;
+
+                boatDistanceBehind = data.boatDistanceBehind;
+                alwaysBarrelFace = data.alwaysBarrelFace;
+                stackedChestSupport = data.stackedChestSupport;
+                stonecutterAxisSymmetry = data.stonecutterAxisSymmetry;
+                prioritizeAirBlock = data.prioritizeAirBlock;
+                if (data.airPriorityMode != null) {
+                        airPriorityMode = data.airPriorityMode;
+                }
+
+                if (data.blocks == null) {
+                        return;
+                }
+
+                applyBlockData(data, "CHEST", CHEST);
+                applyBlockData(data, "BARREL", BARREL);
+                applyBlockData(data, "DOUBLE_CHEST_LEFT", DOUBLE_CHEST_LEFT);
+                applyBlockData(data, "DOUBLE_CHEST_RIGHT", DOUBLE_CHEST_RIGHT);
+                applyBlockData(data, "CRAFTING_TABLE", CRAFTING_TABLE);
+                applyBlockData(data, "AUTO_CRAFTER", AUTO_CRAFTER);
+                applyBlockData(data, "STONECUTTER", STONECUTTER);
+                applyBlockData(data, "CARTOGRAPHY_TABLE", CARTOGRAPHY_TABLE);
+                applyBlockData(data, "SMITHING_TABLE", SMITHING_TABLE);
+                applyBlockData(data, "LOOM", LOOM);
+                applyBlockData(data, "GRINDSTONE", GRINDSTONE);
+                applyBlockData(data, "FURNACE", FURNACE);
+                applyBlockData(data, "SMOKER", SMOKER);
+                applyBlockData(data, "BLAST_FURNACE", BLAST_FURNACE);
+                applyBlockData(data, "ANVIL", ANVIL);
+                applyBlockData(data, "ENCHANTING_TABLE", ENCHANTING_TABLE);
+                applyBlockData(data, "BREWING_STAND", BREWING_STAND);
+                applyBlockData(data, "BEACON", BEACON);
+                applyBlockData(data, "LECTERN", LECTERN);
+                applyBlockData(data, "CHEST_MINECART", CHEST_MINECART);
+                applyBlockData(data, "CHEST_BOAT", CHEST_BOAT);
+                applyBlockData(data, "SHULKER_BOX", SHULKER_BOX);
+                applyBlockData(data, "COMMAND_BLOCK", COMMAND_BLOCK);
+                applyBlockData(data, "HOPPER", HOPPER);
+                applyBlockData(data, "HOPPER_MINECART", HOPPER_MINECART);
+                applyBlockData(data, "DISPENSER", DISPENSER);
+                applyBlockData(data, "DROPPER", DROPPER);
+                applyBlockData(data, "MODDED_CONTAINER", MODDED_CONTAINER);
+        }
+
+        private static void addBlockData(ConfigData data, String key, BlockSettings settings) {
+                BlockSettingsData block = new BlockSettingsData();
+
+                block.offsetX = settings.offsetX;
+                block.offsetY = settings.offsetY;
+                block.offsetZ = settings.offsetZ;
+
+                block.hozOffsetX = settings.hozOffsetX;
+                block.hozOffsetY = settings.hozOffsetY;
+                block.hozOffsetZ = settings.hozOffsetZ;
+
+                block.tilt = settings.tilt;
+                block.flipYaw = settings.flipYaw;
+
+                block.orientationMode = settings.orientationMode;
+                block.orientation = settings.orientation;
+                block.yawMode = settings.yawMode;
+
+                data.blocks.put(key, block);
+        }
+
+        private static void applyBlockData(ConfigData data, String key, BlockSettings settings) {
+                BlockSettingsData block = data.blocks.get(key);
+
+                if (block == null) {
+                        return;
+                }
+
+                settings.offsetX = block.offsetX;
+                settings.offsetY = block.offsetY;
+                settings.offsetZ = block.offsetZ;
+
+                settings.hozOffsetX = block.hozOffsetX;
+                settings.hozOffsetY = block.hozOffsetY;
+                settings.hozOffsetZ = block.hozOffsetZ;
+
+                settings.tilt = block.tilt;
+                settings.flipYaw = block.flipYaw;
+
+                if (block.orientationMode != null) {
+                        settings.orientationMode = block.orientationMode;
+                }
+
+                if (block.orientation != null) {
+                        settings.orientation = block.orientation;
+                }
+
+                if (block.yawMode != null) {
+                        settings.yawMode = block.yawMode;
+                }
+        }
+
         public static Screen create(Screen parent) {
                 ConfigBuilder builder = ConfigBuilder.create()
                                 .setParentScreen(parent)
@@ -426,6 +674,8 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Dispenser", DISPENSER);
                 addBlockCategory(builder, entryBuilder, "Dropper", DROPPER);
                 addBlockCategory(builder, entryBuilder, "Modded Container", MODDED_CONTAINER);
+                
+                builder.setSavingRunnable(ImmersiveChestsConfigScreen::save);
 
                 return builder.build();
         }
@@ -442,6 +692,26 @@ public class ImmersiveChestsConfigScreen {
                                 .setDefaultValue(defaultdebugLogging)
                                 .setSaveConsumer(v -> debugLogging = v)
                                 .build());
+
+                camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Delay GUI"), delayGUI)
+                                .setDefaultValue(defaultDelayGUI)
+                                .setSaveConsumer(v -> delayGUI = v)
+                                .build());
+
+                camera.addEntry(entryBuilder
+                        .startIntField(
+                                Component.literal("GUI Release Ticks Before Finish"),
+                                delayGUIReleaseTicks
+                        )
+                        .setDefaultValue(defaultdelayGUIReleaseTicks)
+                        .setMin(0)
+                        .setMax(20)
+                        .setTooltip(Component.literal(
+                                "How many ticks before animation completion the GUI should appear."
+                        ))
+                        .setSaveConsumer(v -> delayGUIReleaseTicks = v)
+                        .build());
+
 
                 addDoubleWithTooltip(camera, entryBuilder,
                                 "FOV/Offset Scaling",
