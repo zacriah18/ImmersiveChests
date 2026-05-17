@@ -14,7 +14,9 @@ import net.fabricmc.loader.api.FabricLoader;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 import com.zackbailey.immersivechests.enums.ImmersiveYawMode;
+import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen.BlockSettings;
 import com.zackbailey.immersivechests.enums.ImmersiveAirPriorityMode;
+import com.zackbailey.immersivechests.enums.ImmersiveBackpack;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -57,12 +59,14 @@ public class ImmersiveChestsConfigScreen {
         public static boolean alwaysBarrelFace = true;
         public static boolean stackedChestSupport = true;
         public static boolean stonecutterAxisSymmetry = true;
+        public static ImmersiveBackpack backpackCameraMode = ImmersiveBackpack.FEET;
         public static boolean prioritizeAirBlock = true;
         public static ImmersiveAirPriorityMode airPriorityMode = ImmersiveAirPriorityMode.NON_SOLID_BLOCKS;
 
         public static final double defaultboatDistanceBehind = boatDistanceBehind;
         public static final boolean defaultalwaysBarrelFace = alwaysBarrelFace;
         public static final boolean defaultstackedChestSupport = stackedChestSupport;
+        public static final ImmersiveBackpack defaultBackpackCameraMode = backpackCameraMode;
         public static final boolean defaultstonecutterAxisSymmetry = stonecutterAxisSymmetry;
         public static final boolean defaultprioritizeAirBlock = prioritizeAirBlock;
         public static final ImmersiveAirPriorityMode defaultairPriorityMode = airPriorityMode;
@@ -356,88 +360,92 @@ public class ImmersiveChestsConfigScreen {
                         ImmersiveYawMode.AXIS);
 
         public static final BlockSettings HOPPER = new BlockSettings(
-                0.0, 1.05, 0.0,
-                0.0, 0.0, 1.0,
-                0.0,
-                false,
-                ImmersiveCameraOrientationMode.BLOCK_FACE,
-                ImmersiveCameraOrientation.TOP,
-                ImmersiveYawMode.FACE
-        );
+                        0.0, 1.05, 0.0,
+                        0.0, 0.0, 1.0,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.BLOCK_FACE,
+                        ImmersiveCameraOrientation.TOP,
+                        ImmersiveYawMode.FACE);
 
         public static final BlockSettings HOPPER_MINECART = new BlockSettings(
-                0.0, 1.35, 0.0,
-                0.0, 0.0, 1.0,
-                0.0,
-                false,
-                ImmersiveCameraOrientationMode.FIXED,
-                ImmersiveCameraOrientation.TOP,
-                ImmersiveYawMode.FACE
-        );
+                        0.0, 1.35, 0.0,
+                        0.0, 0.0, 1.0,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.FIXED,
+                        ImmersiveCameraOrientation.TOP,
+                        ImmersiveYawMode.FACE);
 
         public static final BlockSettings DISPENSER = new BlockSettings(
-                0.0, 1.25, 0.0,
-                -0.01, 0.0, 1.65,
-                0.0,
-                false,
-                ImmersiveCameraOrientationMode.BLOCK_FACE,
-                ImmersiveCameraOrientation.NORTH,
-                ImmersiveYawMode.FACE
-        );
+                        0.0, 1.25, 0.0,
+                        -0.01, 0.0, 1.65,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.BLOCK_FACE,
+                        ImmersiveCameraOrientation.NORTH,
+                        ImmersiveYawMode.FACE);
 
         public static final BlockSettings DROPPER = new BlockSettings(
-                0.0, 1.25, 0.0,
-                -0.01, 0.0, 1.65,
-                0.0,
-                false,
-                ImmersiveCameraOrientationMode.BLOCK_FACE,
-                ImmersiveCameraOrientation.NORTH,
-                ImmersiveYawMode.FACE
-        );
+                        0.0, 1.25, 0.0,
+                        -0.01, 0.0, 1.65,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.BLOCK_FACE,
+                        ImmersiveCameraOrientation.NORTH,
+                        ImmersiveYawMode.FACE);
 
         public static final BlockSettings MODDED_CONTAINER = new BlockSettings(
-                0.0, 1.20, 0.0,
-                0.0, 0.0, 1.20,
-                0.0,
-                false,
-                ImmersiveCameraOrientationMode.NEAREST_AXIS,
-                ImmersiveCameraOrientation.TOP,
-                ImmersiveYawMode.AXIS
-        );
+                        0.0, 1.20, 0.0,
+                        0.0, 0.0, 1.20,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.NEAREST_AXIS,
+                        ImmersiveCameraOrientation.TOP,
+                        ImmersiveYawMode.AXIS);
+
+         public static final BlockSettings BACKPACK = new BlockSettings(
+                        0.0, 1.05, 0.0,
+                        0.0, 0.0, 1.0,
+                        0.0,
+                        false,
+                        ImmersiveCameraOrientationMode.FIXED,
+                        ImmersiveCameraOrientation.TOP,
+                        ImmersiveYawMode.PLAYER_RAW);
 
 
         private static class ConfigData {
-                boolean enabled;
-                boolean debugLogging;
-                boolean delayGUI;
-                int delayGUIReleaseTicks;
-                double offsetScale;
+                Boolean enabled;
+                Boolean debugLogging;
+                Boolean delayGUI;
+                Integer delayGUIReleaseTicks;
+                Double offsetScale;
 
-                double animationSpeed;
-                double openAnimationScale;
-                double closeAnimationScale;
+                Double animationSpeed;
+                Double openAnimationScale;
+                Double closeAnimationScale;
 
-                double boatDistanceBehind;
-                boolean alwaysBarrelFace;
-                boolean stackedChestSupport;
-                boolean stonecutterAxisSymmetry;
-                boolean prioritizeAirBlock;
+                Double boatDistanceBehind;
+                Boolean alwaysBarrelFace;
+                Boolean stackedChestSupport;
+                Boolean stonecutterAxisSymmetry;
+                ImmersiveBackpack backpackCameraMode;
+                Boolean prioritizeAirBlock;
                 ImmersiveAirPriorityMode airPriorityMode;
-
                 Map<String, BlockSettingsData> blocks = new LinkedHashMap<>();
         }
 
         private static class BlockSettingsData {
-                double offsetX;
-                double offsetY;
-                double offsetZ;
+                Double offsetX;
+                Double offsetY;
+                Double offsetZ;
 
-                double hozOffsetX;
-                double hozOffsetY;
-                double hozOffsetZ;
+                Double hozOffsetX;
+                Double hozOffsetY;
+                Double hozOffsetZ;
 
-                double tilt;
-                boolean flipYaw;
+                Double tilt;
+                Boolean flipYaw;
 
                 ImmersiveCameraOrientationMode orientationMode;
                 ImmersiveCameraOrientation orientation;
@@ -493,6 +501,7 @@ public class ImmersiveChestsConfigScreen {
                 data.alwaysBarrelFace = alwaysBarrelFace;
                 data.stackedChestSupport = stackedChestSupport;
                 data.stonecutterAxisSymmetry = stonecutterAxisSymmetry;
+                data.backpackCameraMode = backpackCameraMode;
                 data.prioritizeAirBlock = prioritizeAirBlock;
                 data.airPriorityMode = airPriorityMode;
 
@@ -524,29 +533,29 @@ public class ImmersiveChestsConfigScreen {
                 addBlockData(data, "DISPENSER", DISPENSER);
                 addBlockData(data, "DROPPER", DROPPER);
                 addBlockData(data, "MODDED_CONTAINER", MODDED_CONTAINER);
+                addBlockData(data, "BACKPACK", BACKPACK);
 
                 return data;
         }
 
         private static void applyData(ConfigData data) {
-                enabled = data.enabled;
-                debugLogging = data.debugLogging;
-                delayGUI = data.delayGUI;
-                delayGUIReleaseTicks = data.delayGUIReleaseTicks;
-                offsetScale = data.offsetScale;
+                enabled = orDefault(data.enabled, defaultenabled);
+                debugLogging = orDefault(data.debugLogging, defaultdebugLogging);
+                delayGUI = orDefault(data.delayGUI, defaultDelayGUI);
+                delayGUIReleaseTicks = orDefault(data.delayGUIReleaseTicks, defaultdelayGUIReleaseTicks);
+                offsetScale = orDefault(data.offsetScale, defaultOffsetScale);
 
-                animationSpeed = data.animationSpeed;
-                openAnimationScale = data.openAnimationScale;
-                closeAnimationScale = data.closeAnimationScale;
+                animationSpeed = orDefault(data.animationSpeed, defaultanimationSpeed);
+                openAnimationScale = orDefault(data.openAnimationScale, defaultopenAnimationScale);
+                closeAnimationScale = orDefault(data.closeAnimationScale, defaultcloseAnimationScale);
 
-                boatDistanceBehind = data.boatDistanceBehind;
-                alwaysBarrelFace = data.alwaysBarrelFace;
-                stackedChestSupport = data.stackedChestSupport;
-                stonecutterAxisSymmetry = data.stonecutterAxisSymmetry;
-                prioritizeAirBlock = data.prioritizeAirBlock;
-                if (data.airPriorityMode != null) {
-                        airPriorityMode = data.airPriorityMode;
-                }
+                boatDistanceBehind = orDefault(data.boatDistanceBehind, defaultboatDistanceBehind);
+                alwaysBarrelFace = orDefault(data.alwaysBarrelFace, defaultalwaysBarrelFace);
+                stackedChestSupport = orDefault(data.stackedChestSupport, defaultstackedChestSupport);
+                stonecutterAxisSymmetry = orDefault(data.stonecutterAxisSymmetry, defaultstonecutterAxisSymmetry);
+                backpackCameraMode = orDefault(data.backpackCameraMode, defaultBackpackCameraMode);
+                prioritizeAirBlock = orDefault(data.prioritizeAirBlock, defaultprioritizeAirBlock);
+                airPriorityMode = orDefault(data.airPriorityMode, defaultairPriorityMode);
 
                 if (data.blocks == null) {
                         return;
@@ -580,6 +589,11 @@ public class ImmersiveChestsConfigScreen {
                 applyBlockData(data, "DISPENSER", DISPENSER);
                 applyBlockData(data, "DROPPER", DROPPER);
                 applyBlockData(data, "MODDED_CONTAINER", MODDED_CONTAINER);
+                applyBlockData(data, "BACKPACK", BACKPACK);
+        }
+
+        private static <T> T orDefault(T value, T defaultValue) {
+                return value != null ? value : defaultValue;
         }
 
         private static void addBlockData(ConfigData data, String key, BlockSettings settings) {
@@ -603,35 +617,36 @@ public class ImmersiveChestsConfigScreen {
                 data.blocks.put(key, block);
         }
 
-        private static void applyBlockData(ConfigData data, String key, BlockSettings settings) {
+        private static void applyBlockData(
+                ConfigData data,
+                String key,
+                BlockSettings settings
+        ) {
                 BlockSettingsData block = data.blocks.get(key);
 
                 if (block == null) {
                         return;
                 }
 
-                settings.offsetX = block.offsetX;
-                settings.offsetY = block.offsetY;
-                settings.offsetZ = block.offsetZ;
+                settings.offsetX = orDefault(block.offsetX, settings.defaultOffsetX);
+                settings.offsetY = orDefault(block.offsetY, settings.defaultOffsetY);
+                settings.offsetZ = orDefault(block.offsetZ, settings.defaultOffsetZ);
 
-                settings.hozOffsetX = block.hozOffsetX;
-                settings.hozOffsetY = block.hozOffsetY;
-                settings.hozOffsetZ = block.hozOffsetZ;
+                settings.hozOffsetX = orDefault(block.hozOffsetX, settings.defaultHozOffsetX);
+                settings.hozOffsetY = orDefault(block.hozOffsetY, settings.defaultHozOffsetY);
+                settings.hozOffsetZ = orDefault(block.hozOffsetZ, settings.defaultHozOffsetZ);
 
-                settings.tilt = block.tilt;
-                settings.flipYaw = block.flipYaw;
+                settings.tilt = orDefault(block.tilt, settings.defaultTilt);
+                settings.flipYaw = orDefault(block.flipYaw, settings.defaultFlipYaw);
 
-                if (block.orientationMode != null) {
-                        settings.orientationMode = block.orientationMode;
-                }
+                settings.orientationMode =
+                        orDefault(block.orientationMode, settings.defaultOrientationMode);
 
-                if (block.orientation != null) {
-                        settings.orientation = block.orientation;
-                }
+                settings.orientation =
+                        orDefault(block.orientation, settings.defaultOrientation);
 
-                if (block.yawMode != null) {
-                        settings.yawMode = block.yawMode;
-                }
+                settings.yawMode =
+                        orDefault(block.yawMode, settings.defaultYawMode);
         }
 
         public static Screen create(Screen parent) {
@@ -672,6 +687,7 @@ public class ImmersiveChestsConfigScreen {
                 addBlockCategory(builder, entryBuilder, "Dispenser", DISPENSER);
                 addBlockCategory(builder, entryBuilder, "Dropper", DROPPER);
                 addBlockCategory(builder, entryBuilder, "Modded Container", MODDED_CONTAINER);
+                addBlockCategory(builder, entryBuilder,"Backpacks", BACKPACK);
                 
                 builder.setSavingRunnable(ImmersiveChestsConfigScreen::save);
 
@@ -739,6 +755,15 @@ public class ImmersiveChestsConfigScreen {
                 special.addEntry(entryBuilder.startBooleanToggle(Text.literal("Stonecutter Axis Symmetry"), stonecutterAxisSymmetry)
                                 .setDefaultValue(defaultstonecutterAxisSymmetry)
                                 .setSaveConsumer(v -> stonecutterAxisSymmetry = v)
+                                .build());
+                
+                special.addEntry(entryBuilder
+                                .startEnumSelector(Text.literal("Backpack Camera Mode"), ImmersiveBackpack.class, backpackCameraMode)
+                                .setDefaultValue(defaultBackpackCameraMode)
+                                .setEnumNameProvider(mode ->
+                                        Text.translatable("immersivechests.backpack." + mode.name().toLowerCase())
+                                )
+                                .setSaveConsumer(v -> backpackCameraMode = v)
                                 .build());
 
                 special.addEntry(entryBuilder.startBooleanToggle(Text.literal("Prioritize Air Block"), prioritizeAirBlock)
