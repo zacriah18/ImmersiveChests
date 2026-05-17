@@ -23,6 +23,11 @@
   "immersivechests.yaw.world_west": "West",
 
   "immersivechests.air_priority.air_only": "Air Only",
-  "immersivechests.air_priority.non_solid_blocks": "Non-Solid Blocks"
+  "immersivechests.air_priority.non_solid_blocks": "Non-Solid Blocks",
+
+  "immersivechests.backpack.feet": "Player Feet",
+  "immersivechests.backpack.crosshair": "Crosshair",
+  "immersivechests.backpack.disabled": "Disabled"
+
 
 }

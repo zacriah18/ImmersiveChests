@@ -77,6 +77,20 @@ public final class ImmersiveTargetResolver {
             return entityContext;
         }
 
+        if (isBackpackScreen(screen)) {
+            switch (ImmersiveChestsConfigScreen.backpackCameraMode) {
+                case DISABLED:
+                    return null;
+
+                case CROSSHAIR:
+                    break;
+
+                case FEET:
+                default:
+                    return resolveBackpackTarget(client);
+            }
+        }
+
         ImmersiveTargetContext blockContext = findBlockTarget(client, screenProfile);
         if (blockContext != null) {
             return blockContext;
@@ -766,9 +780,12 @@ public final class ImmersiveTargetResolver {
     private static ImmersiveTargetContext findSafeEntityFallback(
             ImmersiveTargetProfile screenProfile
     ) {
+        if (screenProfile == null || isGenericContainerFamily(screenProfile.type())) {
+            return null;
+        }
+
         if (lastEntityContext == null
                 || lastEntityContext.profile() == null
-                || screenProfile == null
                 || lastEntityContext.entity() == null) {
             return null;
         }
@@ -834,6 +851,36 @@ public final class ImmersiveTargetResolver {
                 settings.orientationMode,
                 settings.orientation,
                 settings.yawMode
+        );
+    }
+
+    private static boolean isBackpackScreen(Screen screen) {
+        if (screen == null || ImmersiveChestsConfigScreen.backpackCameraMode == null) return false;
+
+        String cls = screen.getClass().getName().toLowerCase();
+        String title = screen.getTitle().getString().toLowerCase();
+
+        return cls.contains("backpack")
+                || title.contains("backpack")
+                || cls.contains("travelersbackpack")
+                || cls.contains("sophisticatedbackpacks");
+    }
+
+    private static ImmersiveTargetContext resolveBackpackTarget(
+            Minecraft client
+    ) {
+        if (client == null || client.player == null) {
+            return null;
+        }
+
+        BlockPos feetPos = client.player.blockPosition();
+        Vec3 feetCenter = Vec3.atCenterOf(feetPos).add(0.0, -0.35, 0.0);
+
+        return new ImmersiveTargetContext(
+                profile(ImmersiveTargetType.MODDED_CONTAINER, ImmersiveChestsConfigScreen.BACKPACK),
+                feetPos,
+                feetCenter,
+                null
         );
     }
 }
