@@ -85,9 +85,21 @@ public abstract class MinecraftClientMixin {
 
         ImmersiveCameraState.setActive(true);
 
-        if (ImmersiveChestsConfigScreen.delayGUI) {
+        if (ImmersiveChestsConfigScreen.delayGUI
+                && !shouldBypassPendingScreen(screen)) {
             ImmersivePendingScreenState.begin(screen);
             ci.cancel();
         }
+    }
+
+    private static boolean shouldBypassPendingScreen(Screen screen) {
+        if (screen == null) {
+            return false;
+        }
+
+        String name = screen.getClass().getName().toLowerCase();
+
+        return name.contains("book")
+                || name.contains("lectern");
     }
 }

@@ -33,6 +33,8 @@ public class ImmersivePendingScreenState {
             return;
         }
 
+        lockPlayerMovementIfConfigured(client);
+
         ticksWaiting++;
 
         boolean shouldRelease = ImmersiveCameraState.isOpeningFinished();
@@ -106,5 +108,23 @@ public class ImmersivePendingScreenState {
 
     public static boolean hasPendingScreen() {
         return pendingScreen != null;
+    }
+
+    private static void lockPlayerMovementIfConfigured(MinecraftClient client) {
+        if (!ImmersiveChestsConfigScreen.lockPlayerMovementWhileOpen) {
+            return;
+        }
+
+        if (client == null || client.player == null) {
+            return;
+        }
+
+        client.options.forwardKey.setPressed(false);
+        client.options.backKey.setPressed(false);
+        client.options.leftKey.setPressed(false);
+        client.options.rightKey.setPressed(false);
+        client.options.jumpKey.setPressed(false);
+        client.options.sneakKey.setPressed(false);
+        client.options.sprintKey.setPressed(false);
     }
 }

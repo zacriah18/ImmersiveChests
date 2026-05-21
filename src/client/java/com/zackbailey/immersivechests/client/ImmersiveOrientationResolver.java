@@ -431,8 +431,16 @@ public final class ImmersiveOrientationResolver {
     ) {
         Direction facing = getFacingOrNull(client, blockPos);
 
-        if (facing == null || facing == Direction.UP || facing == Direction.DOWN) {
+        if (facing == null) {
             return nearestSideIgnoringBlocks(center, playerCameraPos);
+        }
+
+        if (facing == Direction.UP) {
+            return ImmersiveCameraOrientation.TOP;
+        }
+
+        if (facing == Direction.DOWN) {
+            return ImmersiveCameraOrientation.BOTTOM;
         }
 
         return oppositeAxis(directionToOrientation(facing));
