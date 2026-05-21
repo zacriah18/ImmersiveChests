@@ -1,5 +1,4 @@
 package com.zackbailey.immersivechests.client;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -32,6 +31,8 @@ public class ImmersivePendingScreenState {
         if (!delaying || pendingScreen == null) {
             return;
         }
+
+        lockPlayerMovementIfConfigured(client);
 
         ticksWaiting++;
 
@@ -106,5 +107,24 @@ public class ImmersivePendingScreenState {
 
     public static boolean hasPendingScreen() {
         return pendingScreen != null;
+    }
+
+    private static void lockPlayerMovementIfConfigured(Minecraft client) {
+        if (!ImmersiveChestsConfigScreen.lockPlayerMovementWhileOpen) {
+            return;
+        }
+
+        if (client == null || client.player == null || client.options == null) {
+            return;
+        }
+
+        client.options.keyUp.setDown(false);
+        client.options.keyDown.setDown(false);
+        client.options.keyLeft.setDown(false);
+        client.options.keyRight.setDown(false);
+
+        client.options.keyJump.setDown(false);
+        client.options.keyShift.setDown(false);
+        client.options.keySprint.setDown(false);
     }
 }

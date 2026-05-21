@@ -34,10 +34,12 @@ public class ImmersiveChestsConfigScreen {
         public static boolean enabled = true;
         public static boolean debugLogging = false;
         public static boolean delayGUI = true;
+        public static boolean lockPlayerMovementWhileOpen = true;
         public static int delayGUIReleaseTicks = 7;
         
         public static final int defaultdelayGUIReleaseTicks = delayGUIReleaseTicks;
         public static final boolean defaultDelayGUI = delayGUI;
+        public static final boolean defaultlockPlayerMovementWhileOpen = lockPlayerMovementWhileOpen;
         public static final boolean defaultenabled = enabled;
         public static final boolean defaultdebugLogging = debugLogging;
         
@@ -385,7 +387,7 @@ public class ImmersiveChestsConfigScreen {
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
                         ImmersiveCameraOrientation.NORTH,
-                        ImmersiveYawMode.FACE);
+                        ImmersiveYawMode.AXIS);
 
         public static final BlockSettings DROPPER = new BlockSettings(
                         0.0, 1.25, 0.0,
@@ -394,7 +396,7 @@ public class ImmersiveChestsConfigScreen {
                         false,
                         ImmersiveCameraOrientationMode.BLOCK_FACE,
                         ImmersiveCameraOrientation.NORTH,
-                        ImmersiveYawMode.FACE);
+                        ImmersiveYawMode.AXIS);
 
         public static final BlockSettings MODDED_CONTAINER = new BlockSettings(
                         0.0, 1.20, 0.0,
@@ -419,6 +421,7 @@ public class ImmersiveChestsConfigScreen {
                 Boolean enabled;
                 Boolean debugLogging;
                 Boolean delayGUI;
+                Boolean lockPlayerMovementWhileOpen;
                 Integer delayGUIReleaseTicks;
                 Double offsetScale;
 
@@ -491,6 +494,7 @@ public class ImmersiveChestsConfigScreen {
                 data.enabled = enabled;
                 data.debugLogging = debugLogging;
                 data.delayGUI = delayGUI;
+                data.lockPlayerMovementWhileOpen = lockPlayerMovementWhileOpen;
                 data.delayGUIReleaseTicks = delayGUIReleaseTicks;
                 data.offsetScale = offsetScale;
 
@@ -543,6 +547,7 @@ public class ImmersiveChestsConfigScreen {
                 enabled = orDefault(data.enabled, defaultenabled);
                 debugLogging = orDefault(data.debugLogging, defaultdebugLogging);
                 delayGUI = orDefault(data.delayGUI, defaultDelayGUI);
+                lockPlayerMovementWhileOpen = orDefault(data.lockPlayerMovementWhileOpen, defaultlockPlayerMovementWhileOpen);
                 delayGUIReleaseTicks = orDefault(data.delayGUIReleaseTicks, defaultdelayGUIReleaseTicks);
                 offsetScale = orDefault(data.offsetScale, defaultOffsetScale);
 
@@ -726,7 +731,11 @@ public class ImmersiveChestsConfigScreen {
                         ))
                         .setSaveConsumer(v -> delayGUIReleaseTicks = v)
                         .build());
-
+                
+                camera.addEntry(entryBuilder.startBooleanToggle(Component.literal("Player can move while opening GUI."), lockPlayerMovementWhileOpen)
+                                .setDefaultValue(defaultlockPlayerMovementWhileOpen)
+                                .setSaveConsumer(v -> lockPlayerMovementWhileOpen = v)
+                                .build());
 
                 addDoubleWithTooltip(camera, entryBuilder,
                                 "FOV/Offset Scaling",
