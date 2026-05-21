@@ -5,8 +5,7 @@
   "client": [
     "ExampleClientMixin",
     "CameraMixin",
-    "MinecraftClientMixin",
-    "KeyboardInputMixin"
+    "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1
