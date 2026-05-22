@@ -21,5 +21,7 @@ public record ImmersiveTargetProfile(
 
         ImmersiveCameraOrientationMode orientationMode,
         ImmersiveCameraOrientation orientation,
-        ImmersiveYawMode yawMode
+        ImmersiveYawMode yawMode,
+
+        boolean bypassPendingScreen
 ) {}
