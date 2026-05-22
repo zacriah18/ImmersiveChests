@@ -866,7 +866,9 @@ public final class ImmersiveTargetResolver {
 
                 settings.orientationMode,
                 settings.orientation,
-                settings.yawMode
+                settings.yawMode,
+
+                shouldBypassPendingScreen(type)
         );
     }
 
@@ -911,5 +913,11 @@ public final class ImmersiveTargetResolver {
                 feetCenter,
                 null
         );
+    }
+
+    private static boolean shouldBypassPendingScreen(
+            ImmersiveTargetType type
+    ) {
+        return type == ImmersiveTargetType.LECTERN_BOOK;
     }
 }

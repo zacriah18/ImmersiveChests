@@ -14,7 +14,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientation;
 import com.zackbailey.immersivechests.enums.ImmersiveCameraOrientationMode;
 import com.zackbailey.immersivechests.enums.ImmersiveYawMode;
-import com.zackbailey.immersivechests.client.ImmersiveChestsConfigScreen.BlockSettings;
 import com.zackbailey.immersivechests.enums.ImmersiveAirPriorityMode;
 import com.zackbailey.immersivechests.enums.ImmersiveBackpack;
 
